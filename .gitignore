@@ -4,3 +4,10 @@ node_modules/
 *.zip
 .idea/
 .vscode/
+
+# On the main branch, extension/ and website/ are intentionally untracked —
+# their actual home is the `extension` and `website` branches (see README).
+# They stay on disk here as local dev source, but main shouldn't flag them
+# as pending changes.
+/extension/
+/website/
