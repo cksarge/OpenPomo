@@ -1,0 +1,37 @@
+# OpenPomo (extension)
+
+The Chrome extension itself — a Manifest V3 Pomodoro timer with customizable durations, sound
+alerts, and blacklist/whitelist site blocking that's only active during focus sessions.
+
+No ads, no accounts, no analytics. Everything is stored locally via `chrome.storage.local` and
+never leaves your device — see the [privacy policy](https://github.com/cksarge/OpenPomo/blob/website/privacy-policy.md)
+for details.
+
+## Loading it in Chrome
+
+1. Open `chrome://extensions`.
+2. Enable **Developer mode** (top right).
+3. Click **Load unpacked** and select this folder.
+4. Click the OpenPomo icon in the toolbar to open the popup, or the gear icon inside it to open
+   settings.
+
+After editing source files, click the refresh icon on the extension's card in
+`chrome://extensions` to reload it.
+
+## Structure
+
+```
+manifest.json        Manifest V3 config
+background/           Service worker: timer state machine, alarms, site-blocking logic
+popup/                 Toolbar popup UI (the timer itself)
+options/               Settings page (durations, sounds, site lists)
+blocked/               Page shown when navigating to a blocked site during a focus session
+offscreen/              Offscreen document used to play alert sounds (service workers have no audio)
+common/                 Shared constants, storage helpers, and blocking/phase logic
+icons/                  Extension icon source (icon.svg) and generated PNGs
+```
+
+## Repo
+
+Full project (including the website) at [github.com/cksarge/OpenPomo](https://github.com/cksarge/OpenPomo)
+— see the `main` branch for an overview, and the `website` branch for the companion site.
