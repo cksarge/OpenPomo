@@ -1,4 +1,4 @@
-// OpenPomo background service worker (MV3, type: module).
+// OpenTomato background service worker (MV3, type: module).
 //
 // This worker is ephemeral — Chrome can unload it at any time between events.
 // Because of that, the timer's source of truth is chrome.storage.local
@@ -104,9 +104,9 @@ async function playSound(kind) {
         justification: "Play a short alert tone for Pomodoro phase changes.",
       });
     }
-    chrome.runtime.sendMessage({ type: "openpomo:play-sound", kind }).catch(() => {});
+    chrome.runtime.sendMessage({ type: "opentomato:play-sound", kind }).catch(() => {});
   } catch (err) {
-    console.error("OpenPomo: failed to play sound", err);
+    console.error("OpenTomato: failed to play sound", err);
   }
 }
 
@@ -212,7 +212,7 @@ async function advancePhase({ announce }) {
   await applyState(next, settings, { sweep: true });
 
   if (announce) {
-    notify("OpenPomo", `${PHASE_LABELS[finishedPhase]} finished. Starting: ${PHASE_LABELS[nextPhase]}.`);
+    notify("OpenTomato", `${PHASE_LABELS[finishedPhase]} finished. Starting: ${PHASE_LABELS[nextPhase]}.`);
     if (settings.soundOnEnd) await playSound("end");
   }
   return next;
@@ -229,7 +229,7 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const settings = await getSettings();
     const timerState = await getTimerState();
     if (settings.soundOnWarning) await playSound("warning");
-    notify("OpenPomo", `${settings.warningSeconds}s left in ${PHASE_LABELS[timerState.phase]}.`);
+    notify("OpenTomato", `${settings.warningSeconds}s left in ${PHASE_LABELS[timerState.phase]}.`);
     await refreshBadge();
   } else if (alarm.name === ALARM_BADGE_TICK) {
     await refreshBadge();
@@ -237,31 +237,31 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!message || typeof message.type !== "string" || !message.type.startsWith("openpomo:")) {
+  if (!message || typeof message.type !== "string" || !message.type.startsWith("opentomato:")) {
     return false; // not for us (e.g. offscreen-targeted messages) — let others handle it
   }
 
   (async () => {
     switch (message.type) {
-      case "openpomo:start":
+      case "opentomato:start":
         sendResponse(await startTimer());
         break;
-      case "openpomo:pause":
+      case "opentomato:pause":
         sendResponse(await pauseTimer());
         break;
-      case "openpomo:resume":
+      case "opentomato:resume":
         sendResponse(await resumeTimer());
         break;
-      case "openpomo:reset":
+      case "opentomato:reset":
         sendResponse(await resetTimer());
         break;
-      case "openpomo:skip":
+      case "opentomato:skip":
         sendResponse(await skipPhase());
         break;
-      case "openpomo:get-state":
+      case "opentomato:get-state":
         sendResponse({ timerState: await getTimerState(), settings: await getSettings() });
         break;
-      case "openpomo:save-settings":
+      case "opentomato:save-settings":
         await setSettings(message.settings);
         // Re-schedule alarms in case warning/duration settings changed mid-run.
         await scheduleAlarms(await getTimerState(), message.settings);

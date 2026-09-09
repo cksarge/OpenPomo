@@ -1,10 +1,10 @@
-# OpenPomo (extension)
+# OpenTomato (extension)
 
 The Chrome extension itself — a Manifest V3 Pomodoro timer with customizable durations, sound
 alerts, and blacklist/whitelist site blocking that's only active during focus sessions.
 
 No ads, no accounts, no analytics. Everything is stored locally via `chrome.storage.local` and
-never leaves your device — see the [privacy policy](https://github.com/cksarge/OpenPomo/blob/website/privacy-policy.md)
+never leaves your device — see the [privacy policy](https://github.com/cksarge/OpenTomato/blob/website/privacy-policy.md)
 for details.
 
 ## Loading it in Chrome
@@ -12,7 +12,7 @@ for details.
 1. Open `chrome://extensions`.
 2. Enable **Developer mode** (top right).
 3. Click **Load unpacked** and select this folder.
-4. Click the OpenPomo icon in the toolbar to open the popup, or the gear icon inside it to open
+4. Click the OpenTomato icon in the toolbar to open the popup, or the gear icon inside it to open
    settings.
 
 After editing source files, click the refresh icon on the extension's card in
@@ -33,5 +33,5 @@ icons/                  Extension icon source (icon.svg) and generated PNGs
 
 ## Repo
 
-Full project (including the website) at [github.com/cksarge/OpenPomo](https://github.com/cksarge/OpenPomo)
+Full project (including the website) at [github.com/cksarge/OpenTomato](https://github.com/cksarge/OpenTomato)
 — see the `main` branch for an overview, and the `website` branch for the companion site.

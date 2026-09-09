@@ -37,7 +37,7 @@ function playWarningBeep() {
 }
 
 chrome.runtime.onMessage.addListener((message) => {
-  if (message?.type !== "openpomo:play-sound") return;
+  if (message?.type !== "opentomato:play-sound") return;
   if (audioCtx.state === "suspended") audioCtx.resume();
   if (message.kind === "warning") {
     playWarningBeep();

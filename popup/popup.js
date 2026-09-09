@@ -82,7 +82,7 @@ async function sendAction(type) {
 }
 
 async function loadState() {
-  const response = await sendAction("openpomo:get-state");
+  const response = await sendAction("opentomato:get-state");
   if (response) {
     state = response;
   }
@@ -91,22 +91,22 @@ async function loadState() {
 
 els.primaryBtn.addEventListener("click", async () => {
   const { status } = state.timerState;
-  let type = "openpomo:start";
-  if (status === STATUS.RUNNING) type = "openpomo:pause";
-  else if (status === STATUS.PAUSED) type = "openpomo:resume";
+  let type = "opentomato:start";
+  if (status === STATUS.RUNNING) type = "opentomato:pause";
+  else if (status === STATUS.PAUSED) type = "opentomato:resume";
   state.timerState = await sendAction(type);
   render();
 });
 
 els.skipBtn.addEventListener("click", async () => {
   if (state.timerState.status === STATUS.IDLE) return;
-  state.timerState = await sendAction("openpomo:skip");
+  state.timerState = await sendAction("opentomato:skip");
   render();
 });
 
 els.resetBtn.addEventListener("click", async () => {
   if (state.timerState.status === STATUS.IDLE) return;
-  state.timerState = await sendAction("openpomo:reset");
+  state.timerState = await sendAction("opentomato:reset");
   render();
 });
 

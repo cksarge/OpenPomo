@@ -1,5 +1,5 @@
 // Thin promise-based wrapper around chrome.storage.local for the top-level
-// keys OpenPomo uses. Keeping reads/writes funneled through here means every
+// keys OpenTomato uses. Keeping reads/writes funneled through here means every
 // surface (background, popup, options, blocked page) agrees on shape/defaults.
 
 import { DEFAULT_SETTINGS, DEFAULT_TIMER_STATE, DEFAULT_THEME, STORAGE_KEYS } from "./constants.js";

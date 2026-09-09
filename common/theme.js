@@ -56,7 +56,7 @@ function updateToggleButton(buttonEl, theme) {
 /**
  * Applies the stored theme to this page and, if given, wires up a toggle
  * button that cycles system -> light -> dark -> system on click. Also keeps
- * this page's theme in sync if it's changed from another OpenPomo page
+ * this page's theme in sync if it's changed from another OpenTomato page
  * (popup/options/blocked can all be open at once).
  */
 export async function initTheme(buttonEl) {

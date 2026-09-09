@@ -104,7 +104,7 @@ async function persist() {
   await setSettings(settings);
   // Let the background worker know so it can re-schedule alarms if a timer
   // is currently running (e.g. warning settings changed mid-session).
-  chrome.runtime.sendMessage({ type: "openpomo:save-settings", settings }).catch(() => {});
+  chrome.runtime.sendMessage({ type: "opentomato:save-settings", settings }).catch(() => {});
   showSaved();
 }
 
@@ -154,7 +154,7 @@ els.siteInput.addEventListener("keydown", (event) => {
 });
 
 els.resetDefaultsBtn.addEventListener("click", () => {
-  if (!confirm("Reset all OpenPomo settings to their defaults?")) return;
+  if (!confirm("Reset all OpenTomato settings to their defaults?")) return;
   settings = { ...DEFAULT_SETTINGS, blockList: [] };
   populateForm();
   persist();
