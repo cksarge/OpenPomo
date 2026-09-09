@@ -16,6 +16,51 @@
   color-scheme: light;
 }
 
+/* Dark mode: follows the OS/browser preference by default, or an explicit
+   data-theme="dark"/"light" set by the toggle button (see assets/theme.js).
+   Text goes noticeably lighter, not just the background going darker. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-work: #ff7d61;
+    --color-work-dark: #ffb4a0;
+    --color-work-soft: #3a231d;
+    --color-rest: #5cd08a;
+    --color-rest-soft: #1c3226;
+    --color-long-break: #6fa8ea;
+    --color-long-break-soft: #1c2c3f;
+
+    --bg: #1b1512;
+    --surface: #241b17;
+    --text: #f5ece6;
+    --text-muted: #b7a99d;
+    --border: #3a2c25;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-work: #ff7d61;
+  --color-work-dark: #ffb4a0;
+  --color-work-soft: #3a231d;
+  --color-rest: #5cd08a;
+  --color-rest-soft: #1c3226;
+  --color-long-break: #6fa8ea;
+  --color-long-break-soft: #1c2c3f;
+
+  --bg: #1b1512;
+  --surface: #241b17;
+  --text: #f5ece6;
+  --text-muted: #b7a99d;
+  --border: #3a2c25;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -30,6 +75,7 @@ body {
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.6;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 a {
@@ -91,6 +137,26 @@ a {
 
 .nav-links .btn {
   color: #fff;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.icon-btn:hover {
+  background: var(--color-work-soft);
+  color: var(--color-work);
 }
 
 /* Buttons */
@@ -193,13 +259,16 @@ a {
   height: 160px;
   margin: 0 auto 14px;
   border-radius: 50%;
-  border: 10px solid var(--color-work-soft);
-  border-top-color: var(--color-work);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
   font-weight: 800;
+  /* Same shape as the real popup countdown ring: starts at 12 o'clock and
+     fills clockwise. 18:24 left out of a 25:00 session is 73.6% remaining. */
+  background:
+    radial-gradient(closest-side, var(--surface) 87%, transparent 88% 100%),
+    conic-gradient(var(--color-work) 0% 73.6%, var(--color-work-soft) 73.6% 100%);
 }
 
 .hero-mockup .mockup-dots {

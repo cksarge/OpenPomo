@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Effective date:** [add effective date]
+**Effective date:** September 8, 2026
 
 OpenPomo is built around a simple rule: nothing about how you use it ever leaves your device.
 This page explains exactly what that means.
@@ -61,8 +61,4 @@ effective date above.
 
 ## Contact
 
-Questions about this policy or the project can be directed to:
-
-[add contact email or link]
-
-Or opened as an issue on GitHub: [github.com/cksarge/OpenPomo](https://github.com/cksarge/OpenPomo)
+Questions about this policy or the project can be opened as an issue on GitHub: [github.com/cksarge/OpenPomo](https://github.com/cksarge/OpenPomo)
