@@ -13,6 +13,7 @@ import {
   DEFAULT_TIMER_STATE,
   ALARM_PHASE_END,
   ALARM_WARNING,
+  ALARM_BADGE_TICK,
   PHASE_LABELS,
 } from "../common/constants.js";
 import { getSettings, setSettings, getTimerState, setTimerState } from "../common/storage.js";
@@ -22,6 +23,17 @@ import { durationMsForPhase } from "../common/duration.js";
 
 const BLOCKED_URL = chrome.runtime.getURL("blocked/blocked.html");
 
+// Toolbar badge: shows minutes remaining in the current phase (like uBlock's
+// blocked-count badge, but counting down instead of up), color-coded to
+// match the popup's phase colors so it's readable at a glance without
+// opening anything.
+const BADGE_COLORS = {
+  [PHASE.WORK]: "#e85c41",
+  [PHASE.REST]: "#3fa66b",
+  [PHASE.LONG_BREAK]: "#3f7fd1",
+};
+const BADGE_PAUSED_COLOR = "#8a7a6e";
+
 chrome.runtime.onInstalled.addListener(async () => {
   // Reading then writing back through getSettings/getTimerState fills in any
   // missing defaults, so storage always has a complete, well-shaped record.
@@ -29,9 +41,40 @@ chrome.runtime.onInstalled.addListener(async () => {
   await setTimerState(await getTimerState());
 });
 
+async function refreshBadge() {
+  const timerState = await getTimerState();
+
+  let remainingMs;
+  if (timerState.status === STATUS.RUNNING && timerState.phaseEndTime) {
+    remainingMs = Math.max(0, timerState.phaseEndTime - Date.now());
+  } else if (timerState.status === STATUS.PAUSED) {
+    remainingMs = Math.max(0, timerState.remainingMsWhenPaused ?? 0);
+  } else {
+    await chrome.action.setBadgeText({ text: "" });
+    return;
+  }
+
+  const minutesRemaining = Math.ceil(remainingMs / 60000);
+  const color =
+    timerState.status === STATUS.PAUSED ? BADGE_PAUSED_COLOR : BADGE_COLORS[timerState.phase] ?? BADGE_COLORS[PHASE.WORK];
+
+  await chrome.action.setBadgeText({ text: String(minutesRemaining) });
+  await chrome.action.setBadgeBackgroundColor({ color });
+  // Older Chrome versions don't have setBadgeTextColor; badge text defaults
+  // to white anyway, but set it explicitly where available for reliability.
+  if (chrome.action.setBadgeTextColor) {
+    await chrome.action.setBadgeTextColor({ color: "#ffffff" });
+  }
+}
+
+// Refresh on every service-worker wake-up (message, alarm, install, etc.) so
+// the badge is never stale even if a tick alarm was ever missed/delayed.
+refreshBadge();
+
 async function clearAlarms() {
   await chrome.alarms.clear(ALARM_PHASE_END);
   await chrome.alarms.clear(ALARM_WARNING);
+  await chrome.alarms.clear(ALARM_BADGE_TICK);
 }
 
 async function scheduleAlarms(timerState, settings) {
@@ -39,6 +82,9 @@ async function scheduleAlarms(timerState, settings) {
   if (timerState.status !== STATUS.RUNNING || !timerState.phaseEndTime) return;
 
   chrome.alarms.create(ALARM_PHASE_END, { when: timerState.phaseEndTime });
+  // Chrome clamps alarm periods to a 1-minute minimum, which conveniently
+  // matches the badge's minute-level resolution.
+  chrome.alarms.create(ALARM_BADGE_TICK, { delayInMinutes: 1, periodInMinutes: 1 });
 
   if (settings.warningEnabled && settings.warningSeconds > 0) {
     const warnAt = timerState.phaseEndTime - settings.warningSeconds * 1000;
@@ -88,6 +134,7 @@ async function sweepTabsForBlocking(settings) {
 async function applyState(timerState, settings, { sweep = false } = {}) {
   await setTimerState(timerState);
   await scheduleAlarms(timerState, settings);
+  await refreshBadge();
   if (sweep && timerState.status === STATUS.RUNNING && timerState.phase === PHASE.WORK) {
     await sweepTabsForBlocking(settings);
   }
@@ -183,6 +230,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     const timerState = await getTimerState();
     if (settings.soundOnWarning) await playSound("warning");
     notify("OpenPomo", `${settings.warningSeconds}s left in ${PHASE_LABELS[timerState.phase]}.`);
+    await refreshBadge();
+  } else if (alarm.name === ALARM_BADGE_TICK) {
+    await refreshBadge();
   }
 });
 
@@ -215,6 +265,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         await setSettings(message.settings);
         // Re-schedule alarms in case warning/duration settings changed mid-run.
         await scheduleAlarms(await getTimerState(), message.settings);
+        await refreshBadge();
         sendResponse({ ok: true });
         break;
       default:

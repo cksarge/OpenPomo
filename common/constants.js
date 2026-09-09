@@ -54,6 +54,7 @@ export const DEFAULT_TIMER_STATE = {
 
 export const ALARM_PHASE_END = "openpomo-phase-end";
 export const ALARM_WARNING = "openpomo-warning";
+export const ALARM_BADGE_TICK = "openpomo-badge-tick";
 
 export const PHASE_LABELS = {
   [PHASE.WORK]: "Focus",
