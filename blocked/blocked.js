@@ -4,6 +4,7 @@
 import { PHASE, STATUS } from "../common/constants.js";
 import { getSettings, getTimerState } from "../common/storage.js";
 import { formatTime } from "../common/duration.js";
+import { initTheme } from "../common/theme.js";
 
 const els = {
   card: document.getElementById("card"),
@@ -11,7 +12,10 @@ const els = {
   headline: document.getElementById("headline"),
   message: document.getElementById("message"),
   timeValue: document.getElementById("time-value"),
+  themeToggleBtn: document.getElementById("theme-toggle-btn"),
 };
+
+initTheme(els.themeToggleBtn);
 
 let timerState = null;
 

@@ -1,8 +1,8 @@
-// Thin promise-based wrapper around chrome.storage.local for the two top-level
+// Thin promise-based wrapper around chrome.storage.local for the top-level
 // keys OpenPomo uses. Keeping reads/writes funneled through here means every
 // surface (background, popup, options, blocked page) agrees on shape/defaults.
 
-import { DEFAULT_SETTINGS, DEFAULT_TIMER_STATE, STORAGE_KEYS } from "./constants.js";
+import { DEFAULT_SETTINGS, DEFAULT_TIMER_STATE, DEFAULT_THEME, STORAGE_KEYS } from "./constants.js";
 
 export async function getSettings() {
   const { [STORAGE_KEYS.SETTINGS]: settings } = await chrome.storage.local.get(
@@ -24,4 +24,13 @@ export async function getTimerState() {
 
 export async function setTimerState(timerState) {
   await chrome.storage.local.set({ [STORAGE_KEYS.TIMER_STATE]: timerState });
+}
+
+export async function getTheme() {
+  const { [STORAGE_KEYS.THEME]: theme } = await chrome.storage.local.get(STORAGE_KEYS.THEME);
+  return theme || DEFAULT_THEME;
+}
+
+export async function setTheme(theme) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.THEME]: theme });
 }

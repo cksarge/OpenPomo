@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS, BLOCK_MODE } from "../common/constants.js";
 import { getSettings, setSettings } from "../common/storage.js";
 import { normalizeEntry } from "../common/blocklist.js";
+import { initTheme } from "../common/theme.js";
 
 const els = {
   workMinutes: document.getElementById("workMinutes"),
@@ -20,7 +21,10 @@ const els = {
   emptyHint: document.getElementById("empty-hint"),
   resetDefaultsBtn: document.getElementById("reset-defaults-btn"),
   savedIndicator: document.getElementById("saved-indicator"),
+  themeToggleBtn: document.getElementById("theme-toggle-btn"),
 };
+
+initTheme(els.themeToggleBtn);
 
 let settings = { ...DEFAULT_SETTINGS };
 let savedIndicatorTimeout = null;

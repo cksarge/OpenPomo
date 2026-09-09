@@ -1,5 +1,6 @@
 import { PHASE, STATUS, PHASE_LABELS, DEFAULT_SETTINGS, DEFAULT_TIMER_STATE } from "../common/constants.js";
 import { durationMsForPhase, formatTime } from "../common/duration.js";
+import { initTheme } from "../common/theme.js";
 
 const RING_RADIUS = 54;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -14,7 +15,10 @@ const els = {
   skipBtn: document.getElementById("skip-btn"),
   resetBtn: document.getElementById("reset-btn"),
   settingsBtn: document.getElementById("settings-btn"),
+  themeToggleBtn: document.getElementById("theme-toggle-btn"),
 };
+
+initTheme(els.themeToggleBtn);
 
 let state = {
   settings: DEFAULT_SETTINGS,

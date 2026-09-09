@@ -11,6 +11,36 @@
   color-scheme: light;
 }
 
+/* Dark mode: follows the OS/browser preference by default, or an explicit
+   data-theme="dark"/"light" set by the toggle button (see common/theme.js). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-work: #ff7d61;
+    --color-work-soft: #3a231d;
+    --bg: #1b1512;
+    --card-bg: #241b17;
+    --text: #f5ece6;
+    --text-muted: #b7a99d;
+    --border: #3a2c25;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-work: #ff7d61;
+  --color-work-soft: #3a231d;
+  --bg: #1b1512;
+  --card-bg: #241b17;
+  --text: #f5ece6;
+  --text-muted: #b7a99d;
+  --border: #3a2c25;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -20,6 +50,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .page {
@@ -34,7 +65,34 @@ body {
 .page-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+}
+
+.page-header-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .page-header img {
@@ -91,7 +149,7 @@ body {
   padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card-bg);
   color: var(--text);
 }
 

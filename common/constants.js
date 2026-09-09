@@ -23,7 +23,13 @@ export const BLOCK_MODE = {
 export const STORAGE_KEYS = {
   SETTINGS: "settings",
   TIMER_STATE: "timerState",
+  THEME: "theme",
 };
+
+// 'system' follows the OS/browser preference; 'light'/'dark' are explicit
+// manual overrides set via the theme toggle button on each page.
+export const THEME_OPTIONS = ["system", "light", "dark"];
+export const DEFAULT_THEME = "system";
 
 export const DEFAULT_SETTINGS = {
   workMinutes: 25,
