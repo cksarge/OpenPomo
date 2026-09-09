@@ -1,12 +1,12 @@
-# OpenPomo website
+# OpenTomato website
 
 A simple, static 2-page site: a homepage (`index.html`) and a privacy policy page
 (`privacy.html`) that renders `privacy-policy.md` client-side.
 
 ## Adding the Chrome Web Store link
 
-Once OpenPomo is published, open `assets/config.js` and paste the listing URL into
-`OPENPOMO_CHROME_STORE_URL` — that one line drives every "Add to Chrome" button on both pages
+Once OpenTomato is published, open `assets/config.js` and paste the listing URL into
+`OPENTOMATO_CHROME_STORE_URL` — that one line drives every "Add to Chrome" button on both pages
 (nav bar and hero on the homepage, the "Ready to focus?" band, and the nav bar on the privacy
 page). Until it's set, those buttons stay inert placeholders (`href="#"`).
 

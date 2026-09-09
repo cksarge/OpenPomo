@@ -6,7 +6,7 @@
 // before first paint — no flash of the wrong theme.
 
 (function () {
-  var STORAGE_KEY = "openpomo-theme";
+  var STORAGE_KEY = "opentomato-theme";
   var ORDER = ["system", "light", "dark"];
   // Small solid-fill icons instead of emoji, so the toggle looks consistent
   // across platforms/fonts.
