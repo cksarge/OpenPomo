@@ -1,4 +1,4 @@
-# OpenPomo
+# OpenTomato
 
 A free, open-source Pomodoro timer extension for Chrome (Manifest V3) — no ads, no paywall, no
 accounts, no trackers. Every setting and every second of timer state stays on your device.
@@ -33,7 +33,7 @@ website/     A simple static 2-page website: a homepage and a privacy policy pag
 2. Open `chrome://extensions` in Chrome.
 3. Enable **Developer mode** (top right).
 4. Click **Load unpacked** and select the extension folder.
-5. Click the OpenPomo icon in the toolbar to open the popup, or the settings gear inside it to
+5. Click the OpenTomato icon in the toolbar to open the popup, or the settings gear inside it to
    open the options page.
 
 After editing source files, click the refresh icon on the extension's card in
