@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenPomo</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="popup">
+      <header class="popup-header">
+        <div class="brand">
+          <img src="../icons/icon32.png" alt="" class="brand-icon" width="20" height="20" />
+          <span class="brand-name">OpenPomo</span>
+        </div>
+        <button id="settings-btn" class="icon-btn" title="Settings" aria-label="Open settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm7.4-3.5c0 .3 0 .6-.05.9l1.9 1.5a.5.5 0 0 1 .12.63l-1.8 3.1a.5.5 0 0 1-.6.22l-2.24-.9c-.47.36-.98.66-1.54.89l-.34 2.38a.5.5 0 0 1-.5.43h-3.6a.5.5 0 0 1-.5-.43l-.34-2.38a6.9 6.9 0 0 1-1.54-.89l-2.24.9a.5.5 0 0 1-.6-.22l-1.8-3.1a.5.5 0 0 1 .12-.63l1.9-1.5A6.9 6.9 0 0 1 4.6 12c0-.3.02-.6.06-.9l-1.9-1.5a.5.5 0 0 1-.12-.63l1.8-3.1a.5.5 0 0 1 .6-.22l2.24.9c.47-.36.98-.66 1.54-.89l.34-2.38a.5.5 0 0 1 .5-.43h3.6a.5.5 0 0 1 .5.43l.34 2.38c.56.23 1.07.53 1.54.89l2.24-.9a.5.5 0 0 1 .6.22l1.8 3.1a.5.5 0 0 1-.12.63l-1.9 1.5c.04.3.06.6.06.9Z"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <main class="timer-card" id="timer-card" data-phase="work">
+        <p class="phase-label" id="phase-label">Focus</p>
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 120 120">
+            <circle class="ring-track" cx="60" cy="60" r="54" />
+            <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="54" />
+          </svg>
+          <div class="time-display" id="time-display">25:00</div>
+        </div>
+        <div class="cycle-dots" id="cycle-dots" aria-hidden="true"></div>
+      </main>
+
+      <div class="controls">
+        <button id="primary-btn" class="btn btn-primary">Start</button>
+        <div class="secondary-controls">
+          <button id="skip-btn" class="btn btn-ghost" disabled>Skip</button>
+          <button id="reset-btn" class="btn btn-ghost" disabled>Reset</button>
+        </div>
+      </div>
+
+      <footer class="popup-footer">No ads · No tracking · 100% local</footer>
+    </div>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

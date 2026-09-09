@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenPomo Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="page-header">
+        <img src="../icons/icon48.png" alt="" width="32" height="32" />
+        <div>
+          <h1>OpenPomo Settings</h1>
+          <p class="subtitle">Customize your Pomodoro timer and focus-time site blocking.</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Timer Durations</h2>
+        <div class="field-grid">
+          <label class="field">
+            <span>Focus session (minutes)</span>
+            <input type="number" id="workMinutes" min="1" max="180" step="1" />
+          </label>
+          <label class="field">
+            <span>Short break (minutes)</span>
+            <input type="number" id="restMinutes" min="1" max="60" step="1" />
+          </label>
+          <label class="field">
+            <span>Focus sessions before long break</span>
+            <input type="number" id="cyclesBeforeLongBreak" min="1" max="12" step="1" />
+          </label>
+          <label class="field">
+            <span>Long break (minutes)</span>
+            <input type="number" id="longBreakMinutes" min="1" max="120" step="1" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Notifications</h2>
+        <label class="toggle-row">
+          <input type="checkbox" id="soundOnEnd" />
+          <span>Play a sound when a session ends</span>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" id="warningEnabled" />
+          <span>Warn me before a session ends</span>
+        </label>
+        <div class="field-grid indent" id="warning-detail">
+          <label class="field">
+            <span>Warning sound</span>
+            <label class="toggle-row inline">
+              <input type="checkbox" id="soundOnWarning" />
+              <span>Play a sound for the warning</span>
+            </label>
+          </label>
+          <label class="field">
+            <span>Warn me this many seconds before the end</span>
+            <input type="number" id="warningSeconds" min="5" max="120" step="5" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Site Blocking</h2>
+        <p class="hint">
+          Blocking only applies during focus sessions — never during breaks. Enter one domain
+          per site (e.g. <code>youtube.com</code>); subdomains are matched automatically.
+        </p>
+        <div class="mode-row" role="radiogroup" aria-label="Blocking mode">
+          <label class="radio-pill">
+            <input type="radio" name="blockMode" value="off" />
+            <span>Off</span>
+          </label>
+          <label class="radio-pill">
+            <input type="radio" name="blockMode" value="blacklist" />
+            <span>Blacklist</span>
+          </label>
+          <label class="radio-pill">
+            <input type="radio" name="blockMode" value="whitelist" />
+            <span>Whitelist</span>
+          </label>
+        </div>
+        <p class="hint" id="mode-explainer"></p>
+
+        <div class="list-editor">
+          <div class="list-add-row">
+            <input type="text" id="site-input" placeholder="e.g. youtube.com" />
+            <button type="button" id="add-site-btn" class="btn btn-primary">Add</button>
+          </div>
+          <ul class="site-list" id="site-list"></ul>
+          <p class="empty-hint" id="empty-hint">No sites added yet.</p>
+        </div>
+      </section>
+
+      <div class="footer-row">
+        <button type="button" id="reset-defaults-btn" class="btn btn-ghost">Reset to defaults</button>
+        <span class="saved-indicator" id="saved-indicator" aria-live="polite"></span>
+      </div>
+    </div>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
