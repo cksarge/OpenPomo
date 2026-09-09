@@ -399,7 +399,13 @@ a {
 }
 
 .cta-band .btn-secondary {
+  /* This button's background is deliberately always white (for contrast
+     against the always-orange band), so its text must stay a fixed dark
+     color too — not var(--text), which flips to a light color in dark mode
+     and would otherwise render white-on-white. */
   background: #fff;
+  border-color: transparent;
+  color: #c94a32 !important;
 }
 
 /* Footer */
