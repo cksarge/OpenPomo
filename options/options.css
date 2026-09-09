@@ -284,13 +284,21 @@ body {
   justify-content: space-between;
 }
 
+.footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .btn {
+  display: inline-flex;
+  align-items: center;
   border: none;
   border-radius: 10px;
   padding: 9px 14px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .btn-primary {
