@@ -279,15 +279,27 @@ a {
   justify-content: center;
 }
 
+/* Mirrors the real popup's cycle dots: a completed session is a solid dot,
+   the session in progress is the outlined dot with a halo ring, and upcoming
+   sessions are faint outlined dots. */
 .hero-mockup .mockup-dots span {
   width: 8px;
   height: 8px;
+  box-sizing: border-box;
   border-radius: 50%;
-  background: var(--color-work);
+  background: var(--color-work-soft);
+  border: 1.5px solid var(--color-work);
+  opacity: 0.5;
 }
 
-.hero-mockup .mockup-dots span.empty {
-  background: var(--color-work-soft);
+.hero-mockup .mockup-dots span.filled {
+  background: var(--color-work);
+  opacity: 1;
+}
+
+.hero-mockup .mockup-dots span.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px var(--color-work-soft);
 }
 
 /* Feature grid */
