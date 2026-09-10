@@ -27,6 +27,7 @@ popup/                 Toolbar popup UI (the timer itself)
 options/               Settings page (durations, sounds, site lists)
 blocked/               Page shown when navigating to a blocked site during a focus session
 offscreen/              Offscreen document used to play alert sounds (service workers have no audio)
+bridge/                 Content script that links the OpenTomato Web Timer page to this timer
 common/                 Shared constants, storage helpers, and blocking/phase logic
 icons/                  Extension icon source (icon.svg) and generated PNGs
 ```

@@ -27,6 +27,13 @@
     "page": "options/options.html",
     "open_in_tab": true
   },
+  "content_scripts": [
+    {
+      "matches": ["https://cksarge.github.io/OpenTomato/*"],
+      "js": ["bridge/bridge.js"],
+      "run_at": "document_start"
+    }
+  ],
   "permissions": ["storage", "alarms", "webNavigation", "notifications", "offscreen", "tabs"],
   "host_permissions": ["<all_urls>"]
 }
