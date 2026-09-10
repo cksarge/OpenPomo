@@ -18,6 +18,11 @@
         <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme"></button>
       </header>
 
+      <section class="card timer-card-section">
+        <h2>Timer</h2>
+        <div id="timer-panel"></div>
+      </section>
+
       <section class="card">
         <h2>Restrictive Mode</h2>
         <label class="toggle-row">
@@ -93,6 +98,24 @@
             <span>Warn me this many seconds before the end</span>
             <input type="number" id="warningSeconds" min="5" max="120" step="5" />
           </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Tasks</h2>
+        <p class="hint">
+          A checklist that shows in the popup. Check items off from the popup or here; add,
+          rename, and remove them here.
+        </p>
+        <ul class="task-list" id="task-list"></ul>
+        <p class="empty-hint" id="task-empty-hint">No tasks yet.</p>
+        <div class="list-add-row">
+          <input type="text" id="task-input" placeholder="Add a task" maxlength="200" />
+          <button type="button" id="add-task-btn" class="btn btn-primary">Add</button>
+        </div>
+        <div class="task-foot" id="task-foot" hidden>
+          <span class="hint" id="task-count-line"></span>
+          <button type="button" id="clear-done-btn" class="btn btn-ghost">Clear completed</button>
         </div>
       </section>
 

@@ -6,10 +6,18 @@ import {
   STATUS,
   SITE_FOLDERS,
 } from "../common/constants.js";
-import { getSettings, setSettings, getStats, getTimerState } from "../common/storage.js";
+import {
+  getSettings,
+  setSettings,
+  getStats,
+  getTimerState,
+  getTasks,
+  setTasks,
+} from "../common/storage.js";
 import { normalizeEntry } from "../common/blocklist.js";
 import { totalFocusMs, formatFocusDuration, STATS_WINDOW_LABELS } from "../common/stats.js";
 import { initTheme } from "../common/theme.js";
+import { initTimerPanel } from "../common/timer-panel.js";
 
 const els = {
   restrictiveMode: document.getElementById("restrictiveMode"),
@@ -42,13 +50,23 @@ const els = {
   resetDefaultsBtn: document.getElementById("reset-defaults-btn"),
   savedIndicator: document.getElementById("saved-indicator"),
   themeToggleBtn: document.getElementById("theme-toggle-btn"),
+  taskList: document.getElementById("task-list"),
+  taskEmptyHint: document.getElementById("task-empty-hint"),
+  taskInput: document.getElementById("task-input"),
+  addTaskBtn: document.getElementById("add-task-btn"),
+  taskFoot: document.getElementById("task-foot"),
+  taskCountLine: document.getElementById("task-count-line"),
+  clearDoneBtn: document.getElementById("clear-done-btn"),
+  timerPanel: document.getElementById("timer-panel"),
 };
 
 initTheme(els.themeToggleBtn);
+initTimerPanel(els.timerPanel);
 
 let settings = { ...DEFAULT_SETTINGS };
 let stats = { ...DEFAULT_STATS };
 let timerState = { ...DEFAULT_TIMER_STATE };
+let tasks = [];
 let savedIndicatorTimeout = null;
 
 // Folder names the user has expanded, so a re-render doesn't collapse them.
@@ -363,8 +381,125 @@ els.resetDefaultsBtn.addEventListener("click", () => {
   persist();
 });
 
+// --- Tasks -----------------------------------------------------------------
+
+function newTaskId() {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+}
+
+function taskCounts() {
+  return { done: tasks.filter((t) => t.done).length, total: tasks.length };
+}
+
+function renderTaskCount() {
+  const { done, total } = taskCounts();
+  els.taskCountLine.textContent = total ? `${done} of ${total} complete` : "";
+}
+
+function renderTasks() {
+  els.taskList.innerHTML = "";
+  els.taskEmptyHint.style.display = tasks.length ? "none" : "block";
+  els.taskFoot.hidden = tasks.length === 0;
+
+  for (const task of tasks) {
+    const li = document.createElement("li");
+    li.className = "task-row" + (task.done ? " done" : "");
+
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.className = "task-check";
+    check.checked = task.done;
+    check.setAttribute("aria-label", "Mark task done");
+    check.addEventListener("change", () => {
+      task.done = check.checked;
+      li.classList.toggle("done", task.done);
+      renderTaskCount();
+      persistTasks();
+    });
+
+    const text = document.createElement("input");
+    text.type = "text";
+    text.className = "task-text";
+    text.maxLength = 200;
+    text.value = task.text;
+    text.addEventListener("change", () => {
+      const v = text.value.trim();
+      if (!v) {
+        tasks = tasks.filter((t) => t.id !== task.id); // empty text removes it
+        renderTasks();
+        persistTasks();
+        return;
+      }
+      task.text = v;
+      persistTasks();
+    });
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "btn btn-ghost task-remove";
+    remove.textContent = "Remove";
+    remove.addEventListener("click", () => {
+      tasks = tasks.filter((t) => t.id !== task.id);
+      renderTasks();
+      persistTasks();
+    });
+
+    li.append(check, text, remove);
+    els.taskList.appendChild(li);
+  }
+  renderTaskCount();
+}
+
+function addTask() {
+  const value = els.taskInput.value.trim();
+  els.taskInput.value = "";
+  if (!value) return;
+  tasks = [...tasks, { id: newTaskId(), text: value.slice(0, 200), done: false }];
+  renderTasks();
+  persistTasks();
+}
+
+function clearCompleted() {
+  if (!tasks.some((t) => t.done)) return;
+  tasks = tasks.filter((t) => !t.done);
+  renderTasks();
+  persistTasks();
+}
+
+async function persistTasks() {
+  await setTasks(tasks);
+  showSaved();
+}
+
+els.addTaskBtn.addEventListener("click", addTask);
+els.taskInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addTask();
+  }
+});
+els.clearDoneBtn.addEventListener("click", clearCompleted);
+
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
+
+  if (changes.tasks) {
+    const next = Array.isArray(changes.tasks.newValue) ? changes.tasks.newValue : [];
+    tasks = next
+      .filter((t) => t && typeof t.id === "string" && typeof t.text === "string")
+      .map((t) => ({ id: t.id, text: t.text, done: !!t.done }));
+    // Don't yank a task's text field out from under an in-progress edit.
+    const ae = document.activeElement;
+    if (ae && ae.classList && ae.classList.contains("task-text")) {
+      renderTaskCount();
+    } else {
+      renderTasks();
+    }
+  }
 
   if (changes.stats) stats = { ...DEFAULT_STATS, ...(changes.stats.newValue || {}) };
 
@@ -404,6 +539,12 @@ chrome.storage.onChanged.addListener((changes, area) => {
 setInterval(renderFocusTotal, 1000);
 
 (async function init() {
-  [settings, stats, timerState] = await Promise.all([getSettings(), getStats(), getTimerState()]);
+  [settings, stats, timerState, tasks] = await Promise.all([
+    getSettings(),
+    getStats(),
+    getTimerState(),
+    getTasks(),
+  ]);
   populateForm();
+  renderTasks();
 })();

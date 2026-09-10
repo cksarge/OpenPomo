@@ -427,3 +427,272 @@ body {
 .saved-indicator.visible {
   opacity: 1;
 }
+
+/* ---- Timer card (common/timer-panel.js) ---------------------------------- */
+
+.timer-card-section .tp-card {
+  --accent: var(--color-work);
+  --accent-soft: var(--color-work-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Light-mode phase palettes (default). */
+.tp-card[data-phase="rest"] {
+  --accent: #3fa66b;
+  --accent-soft: #e9f7ef;
+}
+.tp-card[data-phase="long-break"] {
+  --accent: #3f7fd1;
+  --accent-soft: #eaf2fc;
+}
+
+/* Dark-mode phase palettes — same guard pattern as the :root vars above:
+   follow prefers-color-scheme unless the toggle forced light, and always
+   win when the toggle forced dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tp-card[data-phase="work"] {
+    --accent: #ff7d61;
+    --accent-soft: #3a231d;
+  }
+  :root:not([data-theme="light"]) .tp-card[data-phase="rest"] {
+    --accent: #5cd08a;
+    --accent-soft: #1c3226;
+  }
+  :root:not([data-theme="light"]) .tp-card[data-phase="long-break"] {
+    --accent: #6fa8ea;
+    --accent-soft: #1c2c3f;
+  }
+}
+
+:root[data-theme="dark"] .tp-card[data-phase="work"] {
+  --accent: #ff7d61;
+  --accent-soft: #3a231d;
+}
+:root[data-theme="dark"] .tp-card[data-phase="rest"] {
+  --accent: #5cd08a;
+  --accent-soft: #1c3226;
+}
+:root[data-theme="dark"] .tp-card[data-phase="long-break"] {
+  --accent: #6fa8ea;
+  --accent-soft: #1c2c3f;
+}
+
+.tp-phase {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tp-ring-wrap {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+
+.tp-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.tp-ring-track {
+  fill: none;
+  stroke: var(--accent-soft);
+  stroke-width: 8;
+}
+
+.tp-ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s linear, stroke 0.25s ease;
+}
+
+.tp-time {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tp-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.tp-dot {
+  width: 8px;
+  height: 8px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  opacity: 0.5;
+}
+
+.tp-dot.filled {
+  background: var(--accent);
+  opacity: 1;
+}
+
+.tp-dot.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.tp-controls {
+  width: 100%;
+  max-width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tp-primary {
+  justify-content: center;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.tp-secondary {
+  display: flex;
+  gap: 8px;
+}
+
+.tp-secondary .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.tp-restrict-note {
+  margin: 0;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.tp-reset-confirm {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tp-reset-confirm p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.tp-reset-phrase {
+  font-weight: 700;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: center;
+  user-select: all;
+}
+
+.tp-reset-input {
+  font: inherit;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.tp-reset-input:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.tp-reset-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.tp-reset-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ---- Tasks card -------------------------------------------------------------- */
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.task-row .task-check {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.task-row .task-text {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+}
+
+.task-row .task-text:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--card-bg);
+}
+
+.task-row.done .task-text {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.task-row .task-remove {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.task-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}

@@ -6,6 +6,7 @@ import {
   DEFAULT_SETTINGS,
   DEFAULT_TIMER_STATE,
   DEFAULT_STATS,
+  DEFAULT_TASKS,
   DEFAULT_THEME,
   STORAGE_KEYS,
   BLOCK_MODE,
@@ -55,6 +56,19 @@ export async function getStats() {
 
 export async function setStats(stats) {
   await chrome.storage.local.set({ [STORAGE_KEYS.STATS]: stats });
+}
+
+export async function getTasks() {
+  const { [STORAGE_KEYS.TASKS]: tasks } = await chrome.storage.local.get(STORAGE_KEYS.TASKS);
+  if (!Array.isArray(tasks)) return DEFAULT_TASKS.slice();
+  // Keep only well-shaped entries so a corrupt write can't break the UI.
+  return tasks
+    .filter((t) => t && typeof t.id === "string" && typeof t.text === "string")
+    .map((t) => ({ id: t.id, text: t.text, done: !!t.done }));
+}
+
+export async function setTasks(tasks) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.TASKS]: tasks });
 }
 
 export async function getTheme() {

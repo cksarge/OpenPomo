@@ -7,7 +7,7 @@ import {
   DEFAULT_STATS,
 } from "../common/constants.js";
 import { durationMsForPhase, formatTime } from "../common/duration.js";
-import { getStats } from "../common/storage.js";
+import { getStats, getTasks, setTasks } from "../common/storage.js";
 import { totalFocusMs, formatFocusDuration, STATS_WINDOW_LABELS } from "../common/stats.js";
 import { initTheme } from "../common/theme.js";
 
@@ -31,9 +31,13 @@ const els = {
   resetConfirmInput: document.getElementById("reset-confirm-input"),
   resetConfirmGo: document.getElementById("reset-confirm-go"),
   resetConfirmCancel: document.getElementById("reset-confirm-cancel"),
+  tasks: document.getElementById("tasks"),
+  taskList: document.getElementById("task-list"),
+  taskToggle: document.getElementById("task-toggle"),
 };
 
 const RESET_PHRASE = "Yes, I want to reset the timer.";
+const TASKS_PREVIEW = 3; // tasks shown before "Show all"
 
 initTheme(els.themeToggleBtn);
 
@@ -41,7 +45,9 @@ let state = {
   settings: DEFAULT_SETTINGS,
   timerState: DEFAULT_TIMER_STATE,
   stats: DEFAULT_STATS,
+  tasks: [],
 };
+let tasksExpanded = false;
 
 function phaseDataAttr(phase) {
   if (phase === PHASE.REST) return "rest";
@@ -105,6 +111,7 @@ function render() {
   }
 
   renderFocusStat();
+  renderTasks();
 }
 
 function openResetConfirm() {
@@ -126,7 +133,75 @@ function renderFocusStat() {
   const strong = document.createElement("strong");
   strong.textContent = total;
   els.focusStat.append(`Focused ${label}: `, strong);
+
+  const tasks = Array.isArray(state.tasks) ? state.tasks : [];
+  if (tasks.length) {
+    const done = tasks.filter((t) => t.done).length;
+    const taskStrong = document.createElement("strong");
+    taskStrong.textContent = `${done}/${tasks.length}`;
+    els.focusStat.append(" · Tasks complete ", taskStrong);
+  }
 }
+
+let lastTasksSig = null;
+
+function renderTasks() {
+  const tasks = Array.isArray(state.tasks) ? state.tasks : [];
+  els.tasks.hidden = tasks.length === 0;
+  if (!tasks.length) {
+    lastTasksSig = "empty";
+    return;
+  }
+
+  const showAll = tasksExpanded || tasks.length <= TASKS_PREVIEW;
+  const visible = showAll ? tasks : tasks.slice(0, TASKS_PREVIEW);
+
+  // render() runs every 250ms; only rebuild the interactive list when the task
+  // data or the expanded state actually changed, so clicks aren't disrupted.
+  const sig = JSON.stringify({ showAll, rows: tasks.map((t) => [t.id, t.text, t.done]) });
+  if (sig === lastTasksSig) return;
+  lastTasksSig = sig;
+
+  els.taskList.innerHTML = "";
+  for (const task of visible) {
+    const li = document.createElement("li");
+    li.className = "task-row" + (task.done ? " done" : "");
+
+    const label = document.createElement("label");
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.className = "task-check";
+    check.checked = task.done;
+    check.addEventListener("change", () => toggleTask(task.id, check.checked));
+
+    const text = document.createElement("span");
+    text.className = "task-text";
+    text.textContent = task.text;
+
+    label.append(check, text);
+    li.appendChild(label);
+    els.taskList.appendChild(li);
+  }
+
+  const overflow = tasks.length - TASKS_PREVIEW;
+  if (overflow > 0) {
+    els.taskToggle.hidden = false;
+    els.taskToggle.textContent = tasksExpanded ? "Show less" : `Show all (${tasks.length})`;
+  } else {
+    els.taskToggle.hidden = true;
+  }
+}
+
+async function toggleTask(id, done) {
+  state.tasks = state.tasks.map((t) => (t.id === id ? { ...t, done } : t));
+  render();
+  await setTasks(state.tasks);
+}
+
+els.taskToggle.addEventListener("click", () => {
+  tasksExpanded = !tasksExpanded;
+  renderTasks();
+});
 
 async function sendAction(type) {
   return chrome.runtime.sendMessage({ type });
@@ -134,8 +209,11 @@ async function sendAction(type) {
 
 async function loadState() {
   const response = await sendAction("opentomato:get-state");
+  const tasks = await getTasks();
   if (response) {
-    state = { stats: DEFAULT_STATS, ...response };
+    state = { stats: DEFAULT_STATS, tasks, ...response };
+  } else {
+    state = { ...state, tasks };
   }
   // Fall back to reading stats straight from storage if the worker response
   // predates the stats field for any reason.
@@ -197,6 +275,9 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (changes.timerState) state.timerState = { ...state.timerState, ...changes.timerState.newValue };
   if (changes.settings) state.settings = { ...state.settings, ...changes.settings.newValue };
   if (changes.stats) state.stats = { ...DEFAULT_STATS, ...changes.stats.newValue };
+  if (changes.tasks) {
+    state.tasks = Array.isArray(changes.tasks.newValue) ? changes.tasks.newValue : [];
+  }
   render();
 });
 

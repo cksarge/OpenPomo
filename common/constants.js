@@ -25,7 +25,13 @@ export const STORAGE_KEYS = {
   TIMER_STATE: "timerState",
   THEME: "theme",
   STATS: "stats",
+  TASKS: "tasks",
 };
+
+// Task list shown in the popup and edited on the options page. Each entry is
+// { id: <string>, text: <string>, done: <boolean> }. Kept in chrome.storage.local
+// like everything else — never leaves the device.
+export const DEFAULT_TASKS = [];
 
 // Windows the popup's "total minutes focused" counter can add up over.
 // 'all' means "everything since the user last hit Reset in settings".
