@@ -48,13 +48,13 @@ each one is for:
 
 | Permission | Why OpenTomato needs it |
 | --- | --- |
-| `storage` | To save your settings, timer state, and focus-time history locally on your device. |
-| `alarms` | To keep the timer accurate even when the extension's background process is asleep. |
-| `webNavigation` | To check, locally, whether a page you're navigating to matches your blacklist/whitelist during a focus session. |
-| `tabs` | To redirect a tab to OpenTomato's own "blocked" page when a site is off-limits during a focus session (and to forget a tab's "Continue anyway" allowance once it closes). |
-| `notifications` | To show a desktop notification when a session or break ends. |
-| `offscreen` | To play a short alert sound, since background service workers can't play audio directly. |
-| Host permissions (all sites) | Required by `webNavigation`/`tabs` above, so blocking can be checked against any site you choose to add to your list — no page content is ever read or transmitted. |
+| `storage` | To save — only on your device — your timer settings, the current timer state (phase, running or paused, time left), your blacklist and whitelist, your focus-time history, and your theme choice. Temporary "Continue anyway" allowances are held in in-memory session storage that clears when the browser closes. |
+| `alarms` | Chrome shuts down the extension's background process when it's idle (a Manifest V3 requirement). Alarms wake it at the exact moment a session or break ends, at the warning point you choose just before that, and once a minute to update the toolbar badge — so the countdown stays accurate while the process is asleep. |
+| `webNavigation` | Only to enforce site blocking. While a focus session is running, OpenTomato checks the domain of each page you navigate to against your blacklist/whitelist — entirely on your device — and redirects to its own "blocked" page if the site is off-limits. Page contents are never read. |
+| `tabs` | To redirect a tab to the "blocked" page when a site is off-limits during a focus session, to check already-open tabs when a session starts, and to forget a tab's "Continue anyway" allowance once it closes. Only a tab's URL is read — never its contents. |
+| `notifications` | To show a desktop notification when a session or break ends, and — if you turn it on — shortly before a session ends. These contain only the timer's phase names and time remaining. |
+| `offscreen` | Manifest V3 background workers can't play audio directly. OpenTomato uses a single hidden document solely to synthesize a short alert tone — no sound files are bundled or downloaded. |
+| Host access (all sites) | Site blocking has to work for any site you add to your blacklist, and whitelist mode blocks everything except the sites you list — so OpenTomato needs to be able to check a navigation against any domain. This access is used only to read a page's domain and compare it, on your device, to your own lists. No page content is read or injected, and OpenTomato never contacts any site itself. |
 
 None of these permissions are used to read, collect, or transmit the content of the pages you
 visit — OpenTomato only ever compares a page's domain against the list you configured yourself, and
