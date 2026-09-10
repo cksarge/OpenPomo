@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "OpenTomato",
+  "name": "OpenTomato – Pomodoro Focus Timer",
   "short_name": "OpenTomato",
   "version": "1.0.0",
   "description": "Privacy-first Pomodoro timer: customizable timers, sound alerts, and focus-session site blocking. 100% local, no tracking.",
