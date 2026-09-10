@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web Timer · OpenTomato</title>
+    <meta
+      name="description"
+      content="A free browser-based Pomodoro timer from OpenTomato — customizable focus and break durations, alert sounds, and desktop notifications. Site blocking and Restrictive Mode need the Chrome extension."
+    />
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <link rel="stylesheet" href="assets/app.css" />
+    <script src="assets/theme.js"></script>
+    <script src="assets/config.js"></script>
+  </head>
+  <body>
+    <nav class="site-nav">
+      <div class="container nav-inner">
+        <a href="index.html" class="brand">
+          <img src="assets/logo.svg" alt="" />
+          OpenTomato
+        </a>
+        <div class="nav-links">
+          <a href="index.html#features">Features</a>
+          <a href="index.html#how-it-works">How it works</a>
+          <a href="app.html" aria-current="page">Web Timer</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="https://github.com/cksarge/OpenTomato" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://buymeacoffee.com/cksarge" target="_blank" rel="noopener">Buy me a coffee</a>
+          <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme"></button>
+          <!-- URL filled in from assets/config.js once OpenTomato is on the Web Store -->
+          <a href="#" data-store-link class="btn btn-primary">Add to Chrome</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container app-main">
+      <header class="app-head">
+        <h1>Web Timer</h1>
+        <p class="app-sub">The OpenTomato Pomodoro timer, right in your browser — no install needed.</p>
+      </header>
+
+      <div class="app-callout" id="ext-callout">
+        <strong>This is the web version.</strong> The timer works right here, but site blocking,
+        Restrictive Mode, a toolbar countdown, and auto-sync between this page and the timer need the
+        OpenTomato Chrome extension.
+      </div>
+
+      <div class="app-layout">
+        <section class="timer-card" id="timer-card" data-phase="work">
+          <p class="phase-label" id="phase-label">Focus</p>
+          <div class="ring-wrap">
+            <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="ring-track" cx="60" cy="60" r="54" />
+              <circle class="ring-progress" id="ring-progress" cx="60" cy="60" r="54" />
+            </svg>
+            <div class="time-display" id="time-display">25:00</div>
+          </div>
+          <div class="cycle-dots" id="cycle-dots" aria-hidden="true"></div>
+
+          <div class="timer-controls">
+            <div class="primary-row">
+              <button id="primary-btn" type="button" class="btn primary-btn">Start</button>
+            </div>
+            <div class="secondary-row">
+              <button id="skip-btn" type="button" class="btn btn-soft" disabled>Skip</button>
+              <button id="reset-btn" type="button" class="btn btn-soft" disabled>Reset</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <h2>Timer settings</h2>
+          <p class="settings-sub">Durations, alert sounds, and the end-of-session warning.</p>
+
+          <form id="settings-form" autocomplete="off">
+            <div class="field-grid">
+              <label class="field">
+                <span>Focus session (minutes)</span>
+                <input type="number" id="workMinutes" min="1" max="180" step="1" />
+              </label>
+              <label class="field">
+                <span>Short break (minutes)</span>
+                <input type="number" id="restMinutes" min="1" max="60" step="1" />
+              </label>
+              <label class="field">
+                <span>Focus sessions before long break</span>
+                <input type="number" id="cyclesBeforeLongBreak" min="1" max="12" step="1" />
+              </label>
+              <label class="field">
+                <span>Long break (minutes)</span>
+                <input type="number" id="longBreakMinutes" min="1" max="120" step="1" />
+              </label>
+            </div>
+
+            <hr class="settings-divider" />
+
+            <label class="toggle-row">
+              <input type="checkbox" id="soundOnEnd" />
+              <span>Play a sound when a session ends</span>
+            </label>
+
+            <label class="toggle-row">
+              <input type="checkbox" id="warningEnabled" />
+              <span>Warn me before a session ends</span>
+            </label>
+            <div id="warning-detail">
+              <label class="toggle-row indent">
+                <input type="checkbox" id="soundOnWarning" />
+                <span>Play a sound for the warning</span>
+              </label>
+              <label class="field" style="margin: 12px 0 0 26px; max-width: 260px">
+                <span>Warn me this many seconds before the end</span>
+                <input type="number" id="warningSeconds" min="5" max="120" step="5" />
+              </label>
+            </div>
+
+            <label class="toggle-row" id="notify-row">
+              <input type="checkbox" id="notificationsEnabled" />
+              <span>Show a desktop notification on each phase change</span>
+            </label>
+            <p class="hint muted-note" id="notify-hint" hidden>
+              Your browser blocked notifications for this site. Allow them in the site settings, then
+              turn this back on.
+            </p>
+            <p class="hint" id="notify-synced-note" hidden>
+              The OpenTomato extension is connected and shows its own notifications.
+            </p>
+
+            <div class="settings-foot">
+              <span class="ext-note">Site blocking &amp; Restrictive Mode are configured in the extension.</span>
+              <span class="saved-indicator" id="saved-indicator" aria-live="polite">Saved</span>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span>© 2026 OpenTomato. MIT licensed.</span>
+        <div class="footer-links">
+          <a href="app.html">Web Timer</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="https://github.com/cksarge/OpenTomato" target="_blank" rel="noopener">GitHub</a>
+          <a href="mailto:carterkcoding@gmail.com">Contact</a>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,328 @@
+/* OpenTomato Web Timer page — timer card + settings, built on the shared
+   brand tokens in style.css. */
+
+.app-main {
+  padding: 32px 0 64px;
+}
+
+.app-head {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.app-head h1 {
+  font-size: clamp(28px, 4vw, 38px);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.app-head .app-sub {
+  color: var(--text-muted);
+  margin: 0;
+  font-size: 16px;
+}
+
+/* "This is the web version / synced" callout */
+.app-callout {
+  max-width: 820px;
+  margin: 0 auto 28px;
+  background: var(--color-work-soft);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.app-callout.is-synced {
+  background: var(--color-rest-soft);
+}
+
+.app-callout strong {
+  color: var(--text);
+}
+
+.app-callout-link {
+  display: inline-block;
+  margin-top: 4px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--color-work-dark);
+  text-decoration: none;
+}
+
+.app-callout-link:hover {
+  text-decoration: underline;
+}
+
+/* Layout: timer beside settings on wide screens, stacked on narrow */
+.app-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+@media (max-width: 780px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- timer card (mirrors the extension popup) ---- */
+
+.timer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  --accent: var(--color-work);
+  --accent-soft: var(--color-work-soft);
+  transition: background 0.25s ease;
+}
+
+.timer-card[data-phase="work"] {
+  --accent: var(--color-work);
+  --accent-soft: var(--color-work-soft);
+}
+.timer-card[data-phase="rest"] {
+  --accent: var(--color-rest);
+  --accent-soft: var(--color-rest-soft);
+}
+.timer-card[data-phase="long-break"] {
+  --accent: var(--color-long-break);
+  --accent-soft: var(--color-long-break-soft);
+}
+
+.timer-card .phase-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.ring-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: var(--accent-soft);
+  stroke-width: 8;
+}
+
+.ring-progress {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s linear, stroke 0.25s ease;
+}
+
+.time-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.cycle-dots {
+  display: flex;
+  gap: 7px;
+  min-height: 12px;
+}
+
+.cycle-dots .dot {
+  width: 9px;
+  height: 9px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  opacity: 0.5;
+}
+
+.cycle-dots .dot.filled {
+  background: var(--accent);
+  opacity: 1;
+}
+
+.cycle-dots .dot.active {
+  opacity: 1;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.timer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 260px;
+}
+
+.timer-controls .btn {
+  justify-content: center;
+  cursor: pointer;
+}
+
+.timer-controls .primary-row .btn {
+  width: 100%;
+}
+
+.timer-controls .secondary-row {
+  display: flex;
+  gap: 10px;
+}
+
+.timer-controls .secondary-row .btn {
+  flex: 1;
+}
+
+.btn.btn-soft {
+  background: var(--accent-soft);
+  color: var(--accent) !important;
+  border-color: transparent;
+}
+
+.btn.btn-soft:hover {
+  filter: brightness(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.timer-card .primary-btn {
+  background: var(--accent);
+  color: #fff !important;
+}
+
+/* ---- settings card ---- */
+
+.settings-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.settings-card h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+
+.settings-card .settings-sub {
+  margin: 0 0 18px;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.field input[type="number"] {
+  font: inherit;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.field input[type="number"]:focus {
+  outline: 2px solid var(--accent-soft, var(--color-work-soft));
+  border-color: var(--color-work);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  margin-top: 14px;
+  cursor: pointer;
+}
+
+.toggle-row input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+}
+
+.toggle-row.indent {
+  margin-left: 26px;
+}
+
+.settings-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 18px 0 4px;
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 12.5px;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.hint.muted-note {
+  margin-left: 26px;
+}
+
+.settings-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.saved-indicator {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.saved-indicator.visible {
+  opacity: 1;
+}
+
+.settings-foot .ext-note {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
