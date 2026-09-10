@@ -83,7 +83,8 @@ export function initTimerPanel(root) {
   };
 
   function render() {
-    const { settings, timerState } = state;
+    const settings = state.settings || DEFAULT_SETTINGS;
+    const timerState = state.timerState || DEFAULT_TIMER_STATE;
     const { phase, status, cycleCount } = timerState;
 
     els.card.dataset.phase = phaseAttr(phase);

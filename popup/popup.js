@@ -56,7 +56,8 @@ function phaseDataAttr(phase) {
 }
 
 function render() {
-  const { settings, timerState } = state;
+  const settings = state.settings || DEFAULT_SETTINGS;
+  const timerState = state.timerState || DEFAULT_TIMER_STATE;
   const { phase, status, cycleCount } = timerState;
 
   els.card.dataset.phase = phaseDataAttr(phase);
@@ -208,19 +209,28 @@ async function sendAction(type) {
 }
 
 async function loadState() {
-  const response = await sendAction("opentomato:get-state");
+  let response = null;
+  try {
+    response = await sendAction("opentomato:get-state");
+  } catch {
+    // Worker not ready yet (e.g. just after an unpacked reload) — fall through
+    // to reading storage directly; a storage.onChanged will catch us up.
+  }
   const tasks = await getTasks();
-  if (response) {
-    state = { stats: DEFAULT_STATS, tasks, ...response };
-  } else {
-    state = { ...state, tasks };
-  }
-  // Fall back to reading stats straight from storage if the worker response
-  // predates the stats field for any reason.
-  if (!response || !response.stats) {
-    state.stats = await getStats();
-  }
+
+  state = {
+    timerState:
+      response && response.timerState ? response.timerState : state.timerState || DEFAULT_TIMER_STATE,
+    settings:
+      response && response.settings ? response.settings : state.settings || DEFAULT_SETTINGS,
+    stats: response && response.stats ? response.stats : await getStats(),
+    tasks,
+  };
   render();
+}
+
+function applyTimerState(next) {
+  if (next && typeof next === "object") state.timerState = next;
 }
 
 els.primaryBtn.addEventListener("click", async () => {
@@ -228,14 +238,14 @@ els.primaryBtn.addEventListener("click", async () => {
   let type = "opentomato:start";
   if (status === STATUS.RUNNING) type = "opentomato:pause";
   else if (status === STATUS.PAUSED) type = "opentomato:resume";
-  state.timerState = await sendAction(type);
+  applyTimerState(await sendAction(type));
   render();
 });
 
 els.skipBtn.addEventListener("click", async () => {
   if (state.timerState.status === STATUS.IDLE) return;
   if (state.settings.restrictiveMode) return; // no skipping in restrictive mode
-  state.timerState = await sendAction("opentomato:skip");
+  applyTimerState(await sendAction("opentomato:skip"));
   render();
 });
 
@@ -249,7 +259,7 @@ els.resetBtn.addEventListener("click", async () => {
     return;
   }
 
-  state.timerState = await sendAction("opentomato:reset");
+  applyTimerState(await sendAction("opentomato:reset"));
   render();
 });
 
@@ -262,7 +272,7 @@ els.resetConfirmCancel.addEventListener("click", closeResetConfirm);
 els.resetConfirmGo.addEventListener("click", async () => {
   if (els.resetConfirmInput.value !== RESET_PHRASE) return;
   closeResetConfirm();
-  state.timerState = await chrome.runtime.sendMessage({ type: "opentomato:reset", confirmed: true });
+  applyTimerState(await chrome.runtime.sendMessage({ type: "opentomato:reset", confirmed: true }));
   render();
 });
 
