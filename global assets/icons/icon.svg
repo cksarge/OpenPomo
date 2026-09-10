@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- Leaves -->
+  <g fill="#3fa66b">
+    <ellipse cx="64" cy="26" rx="8" ry="16" transform="rotate(-32 64 26)" />
+    <ellipse cx="64" cy="22" rx="8" ry="17" />
+    <ellipse cx="64" cy="26" rx="8" ry="16" transform="rotate(32 64 26)" />
+  </g>
+
+  <!-- Tomato body -->
+  <circle cx="64" cy="72" r="48" fill="#e85c41" />
+  <ellipse cx="46" cy="52" rx="12" ry="8" fill="#ffffff" opacity="0.18" />
+
+  <!-- Clock face -->
+  <circle cx="64" cy="72" r="27" fill="#fff8f5" stroke="#c94a32" stroke-width="3" />
+  <g stroke="#2b2118" stroke-width="4" stroke-linecap="round">
+    <line x1="64" y1="72" x2="64" y2="54" />
+    <line x1="64" y1="72" x2="77" y2="78" />
+  </g>
+  <circle cx="64" cy="72" r="3.5" fill="#2b2118" />
+</svg>
