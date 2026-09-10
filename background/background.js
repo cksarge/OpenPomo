@@ -107,6 +107,30 @@ function stopBadgeSecondTimer() {
   }
 }
 
+// While a phase is actively counting down, keep the service worker resident.
+// MV3 unloads the worker after ~30s idle; if that happens mid-phase the badge
+// freezes on whatever it last showed and only corrects on the next event that
+// wakes the worker (a delayed alarm, a navigation, opening the popup), so it
+// visibly drifts from the real time left. A sub-30s interval that calls a
+// chrome API each tick keeps the worker alive for the duration of a running
+// phase, and re-derives the badge straight from phaseEndTime every tick so it
+// can't get stale. Runs only while RUNNING with the countdown badge enabled —
+// paused and idle timers let the worker sleep as normal.
+let keepAliveTimer = null;
+
+function startKeepAlive() {
+  if (keepAliveTimer === null) {
+    keepAliveTimer = setInterval(refreshBadge, 20000);
+  }
+}
+
+function stopKeepAlive() {
+  if (keepAliveTimer !== null) {
+    clearInterval(keepAliveTimer);
+    keepAliveTimer = null;
+  }
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   // Reading then writing back through getSettings/getTimerState fills in any
   // missing defaults, so storage always has a complete, well-shaped record.
@@ -122,6 +146,7 @@ async function refreshBadge() {
   // settings; when disabled, keep the toolbar icon clean.
   if (!settings.badgeCountdown) {
     stopBadgeSecondTimer();
+    stopKeepAlive();
     await chrome.action.setBadgeText({ text: "" });
     return;
   }
@@ -133,9 +158,15 @@ async function refreshBadge() {
     remainingMs = Math.max(0, timerState.remainingMsWhenPaused ?? 0);
   } else {
     stopBadgeSecondTimer();
+    stopKeepAlive();
     await chrome.action.setBadgeText({ text: "" });
     return;
   }
+
+  // Keep the worker alive while the timer runs so the countdown can't freeze;
+  // let it sleep while paused (the badge holds a static value then anyway).
+  if (timerState.status === STATUS.RUNNING) startKeepAlive();
+  else stopKeepAlive();
 
   // Under a minute left: show a live seconds countdown instead of a flat "1".
   const underOneMinute = remainingMs > 0 && remainingMs < 60000;
