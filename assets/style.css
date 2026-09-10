@@ -525,6 +525,40 @@ a {
   padding: 40px 0;
 }
 
+/* "Use the Web Timer" callout on the homepage */
+.web-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 32px;
+}
+
+.web-cta-text {
+  max-width: 620px;
+}
+
+.web-cta h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  text-align: left;
+}
+
+.web-cta p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+.web-cta .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 @media (max-width: 720px) {
   .feature-grid,
   .steps,
@@ -534,5 +568,9 @@ a {
 
   .nav-links {
     gap: 14px;
+  }
+
+  .web-cta {
+    padding: 24px;
   }
 }
