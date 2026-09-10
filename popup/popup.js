@@ -1,5 +1,14 @@
-import { PHASE, STATUS, PHASE_LABELS, DEFAULT_SETTINGS, DEFAULT_TIMER_STATE } from "../common/constants.js";
+import {
+  PHASE,
+  STATUS,
+  PHASE_LABELS,
+  DEFAULT_SETTINGS,
+  DEFAULT_TIMER_STATE,
+  DEFAULT_STATS,
+} from "../common/constants.js";
 import { durationMsForPhase, formatTime } from "../common/duration.js";
+import { getStats } from "../common/storage.js";
+import { totalFocusMs, formatFocusDuration, STATS_WINDOW_LABELS } from "../common/stats.js";
 import { initTheme } from "../common/theme.js";
 
 const RING_RADIUS = 54;
@@ -16,13 +25,22 @@ const els = {
   resetBtn: document.getElementById("reset-btn"),
   settingsBtn: document.getElementById("settings-btn"),
   themeToggleBtn: document.getElementById("theme-toggle-btn"),
+  restrictNote: document.getElementById("restrict-note"),
+  focusStat: document.getElementById("focus-stat"),
+  resetConfirm: document.getElementById("reset-confirm"),
+  resetConfirmInput: document.getElementById("reset-confirm-input"),
+  resetConfirmGo: document.getElementById("reset-confirm-go"),
+  resetConfirmCancel: document.getElementById("reset-confirm-cancel"),
 };
+
+const RESET_PHRASE = "Yes, I want to reset the timer.";
 
 initTheme(els.themeToggleBtn);
 
 let state = {
   settings: DEFAULT_SETTINGS,
   timerState: DEFAULT_TIMER_STATE,
+  stats: DEFAULT_STATS,
 };
 
 function phaseDataAttr(phase) {
@@ -73,8 +91,41 @@ function render() {
     els.primaryBtn.textContent = "Start";
   }
 
-  els.skipBtn.disabled = status === STATUS.IDLE;
-  els.resetBtn.disabled = status === STATUS.IDLE;
+  const active = status !== STATUS.IDLE;
+  const restrictive = !!settings.restrictiveMode;
+
+  // Restrictive mode: no skipping while a session runs; reset only when paused.
+  els.skipBtn.disabled = !active || restrictive;
+  els.resetBtn.disabled = !active || (restrictive && status !== STATUS.PAUSED);
+  els.restrictNote.hidden = !(restrictive && active);
+
+  // Close the type-to-confirm panel if a reset is no longer possible.
+  if (!els.resetConfirm.hidden && !(restrictive && status === STATUS.PAUSED)) {
+    closeResetConfirm();
+  }
+
+  renderFocusStat();
+}
+
+function openResetConfirm() {
+  els.resetConfirmInput.value = "";
+  els.resetConfirmGo.disabled = true;
+  els.resetConfirm.hidden = false;
+  els.resetConfirmInput.focus();
+}
+
+function closeResetConfirm() {
+  els.resetConfirm.hidden = true;
+}
+
+function renderFocusStat() {
+  const win = state.settings.statsWindow ?? DEFAULT_SETTINGS.statsWindow;
+  const label = STATS_WINDOW_LABELS[win] ?? STATS_WINDOW_LABELS[DEFAULT_SETTINGS.statsWindow];
+  const total = formatFocusDuration(totalFocusMs(state.stats, state.timerState, state.settings));
+  els.focusStat.textContent = "";
+  const strong = document.createElement("strong");
+  strong.textContent = total;
+  els.focusStat.append(`Focused ${label}: `, strong);
 }
 
 async function sendAction(type) {
@@ -84,7 +135,12 @@ async function sendAction(type) {
 async function loadState() {
   const response = await sendAction("opentomato:get-state");
   if (response) {
-    state = response;
+    state = { stats: DEFAULT_STATS, ...response };
+  }
+  // Fall back to reading stats straight from storage if the worker response
+  // predates the stats field for any reason.
+  if (!response || !response.stats) {
+    state.stats = await getStats();
   }
   render();
 }
@@ -100,13 +156,35 @@ els.primaryBtn.addEventListener("click", async () => {
 
 els.skipBtn.addEventListener("click", async () => {
   if (state.timerState.status === STATUS.IDLE) return;
+  if (state.settings.restrictiveMode) return; // no skipping in restrictive mode
   state.timerState = await sendAction("opentomato:skip");
   render();
 });
 
 els.resetBtn.addEventListener("click", async () => {
-  if (state.timerState.status === STATUS.IDLE) return;
+  const { status } = state.timerState;
+  if (status === STATUS.IDLE) return;
+
+  if (state.settings.restrictiveMode) {
+    if (status !== STATUS.PAUSED) return; // can only reset from a paused timer
+    openResetConfirm();
+    return;
+  }
+
   state.timerState = await sendAction("opentomato:reset");
+  render();
+});
+
+els.resetConfirmInput.addEventListener("input", () => {
+  els.resetConfirmGo.disabled = els.resetConfirmInput.value !== RESET_PHRASE;
+});
+
+els.resetConfirmCancel.addEventListener("click", closeResetConfirm);
+
+els.resetConfirmGo.addEventListener("click", async () => {
+  if (els.resetConfirmInput.value !== RESET_PHRASE) return;
+  closeResetConfirm();
+  state.timerState = await chrome.runtime.sendMessage({ type: "opentomato:reset", confirmed: true });
   render();
 });
 
@@ -118,6 +196,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
   if (changes.timerState) state.timerState = { ...state.timerState, ...changes.timerState.newValue };
   if (changes.settings) state.settings = { ...state.settings, ...changes.settings.newValue };
+  if (changes.stats) state.stats = { ...DEFAULT_STATS, ...changes.stats.newValue };
   render();
 });
 

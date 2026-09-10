@@ -51,6 +51,14 @@ export function matchesList(hostname, list) {
   return list.some((entry) => entry && hostnameMatches(hostname, entry));
 }
 
+// The site list that applies to the current mode. Blacklist and whitelist are
+// stored separately, so only one of them is ever in effect at a time.
+export function activeBlockList(settings) {
+  if (settings.blockMode === BLOCK_MODE.BLACKLIST) return settings.blacklist || [];
+  if (settings.blockMode === BLOCK_MODE.WHITELIST) return settings.whitelist || [];
+  return [];
+}
+
 // Decide whether navigating to `url` should be blocked, given the current
 // block mode and list. Only ever call this while phase === 'work'.
 export function isUrlBlocked(url, blockMode, blockList) {

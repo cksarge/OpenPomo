@@ -19,6 +19,30 @@
       </header>
 
       <section class="card">
+        <h2>Restrictive Mode</h2>
+        <label class="toggle-row">
+          <input type="checkbox" id="restrictiveMode" />
+          <span>Enable restrictive mode</span>
+        </label>
+        <p class="hint">
+          When restrictive mode is on, starting a focus session locks things down until that
+          session ends:
+        </p>
+        <ul class="hint restrict-list">
+          <li>Timer durations and every site-blocking setting are frozen.</li>
+          <li>The timer can't be skipped — at all.</li>
+          <li>
+            The timer can only be reset while it's <em>paused</em>, and only after typing a
+            confirmation phrase.
+          </li>
+          <li>Blocked pages lose their &ldquo;Continue anyway&rdquo; button.</li>
+        </ul>
+        <p class="hint lock-note" id="restrictive-active-note" hidden>
+          🔒 A focus session is running — restrictive mode can't be changed until it ends.
+        </p>
+      </section>
+
+      <section class="card">
         <h2>Timer Durations</h2>
         <div class="field-grid">
           <label class="field">
@@ -38,6 +62,9 @@
             <input type="number" id="longBreakMinutes" min="1" max="120" step="1" />
           </label>
         </div>
+        <p class="hint lock-note" id="timer-lock-note" hidden>
+          🔒 Locked while a focus session is running (restrictive mode).
+        </p>
       </section>
 
       <section class="card">
@@ -45,6 +72,10 @@
         <label class="toggle-row">
           <input type="checkbox" id="soundOnEnd" />
           <span>Play a sound when a session ends</span>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" id="badgeCountdown" />
+          <span>Show minutes remaining on the toolbar icon</span>
         </label>
         <label class="toggle-row">
           <input type="checkbox" id="warningEnabled" />
@@ -66,10 +97,35 @@
       </section>
 
       <section class="card">
-        <h2>Site Blocking</h2>
+        <h2>Focus Stats</h2>
         <p class="hint">
-          Blocking only applies during focus sessions — never during breaks. Enter one domain
-          per site (e.g. <code>youtube.com</code>); subdomains are matched automatically.
+          Counts the time you actually spend in focus sessions. Pick the window the popup's
+          running total adds up over, or reset it whenever you want a fresh start.
+        </p>
+        <div class="field-grid">
+          <label class="field">
+            <span>Popup total covers</span>
+            <select id="statsWindow">
+              <option value="hour">The current hour</option>
+              <option value="day">Today</option>
+              <option value="week">This week</option>
+              <option value="month">This month</option>
+              <option value="all">Since I last reset it</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint" id="focus-total-line"></p>
+        <div>
+          <button type="button" id="reset-stats-btn" class="btn btn-ghost">Reset focus total</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Site Blocking</h2>
+        <p class="hint" id="blocking-hint">
+          Blocking only applies during focus sessions — never during breaks. The blacklist and
+          whitelist keep separate lists. Enter one domain per site (e.g. <code>youtube.com</code>);
+          subdomains are matched automatically.
         </p>
         <div class="mode-row" role="radiogroup" aria-label="Blocking mode">
           <label class="radio-pill">
@@ -87,7 +143,7 @@
         </div>
         <p class="hint" id="mode-explainer"></p>
 
-        <div class="list-editor">
+        <div class="list-editor" id="list-editor">
           <div class="list-add-row">
             <input type="text" id="site-input" placeholder="e.g. youtube.com" />
             <button type="button" id="add-site-btn" class="btn btn-primary">Add</button>
@@ -95,6 +151,13 @@
           <ul class="site-list" id="site-list"></ul>
           <p class="empty-hint" id="empty-hint">No sites added yet.</p>
         </div>
+
+        <p class="hint" id="folders-hint">Or quick-add a whole category:</p>
+        <div class="site-folders" id="site-folders"></div>
+
+        <p class="hint lock-note" id="blocking-lock-note" hidden>
+          🔒 Locked while a focus session is running (restrictive mode).
+        </p>
       </section>
 
       <div class="footer-row">

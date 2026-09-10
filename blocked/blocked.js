@@ -1,7 +1,7 @@
 // This page lives at chrome-extension://<id>/blocked/blocked.html, so it can
 // read extension storage directly (no messaging round-trip needed).
 
-import { PHASE, STATUS } from "../common/constants.js";
+import { PHASE, STATUS, DEFAULT_SETTINGS } from "../common/constants.js";
 import { getSettings, getTimerState } from "../common/storage.js";
 import { formatTime } from "../common/duration.js";
 import { initTheme } from "../common/theme.js";
@@ -11,13 +11,33 @@ const els = {
   icon: document.querySelector(".icon"),
   headline: document.getElementById("headline"),
   message: document.getElementById("message"),
+  hint: document.getElementById("hint"),
   timeValue: document.getElementById("time-value"),
+  actions: document.getElementById("actions"),
+  backBtn: document.getElementById("back-btn"),
+  continueBtn: document.getElementById("continue-btn"),
   themeToggleBtn: document.getElementById("theme-toggle-btn"),
 };
 
 initTheme(els.themeToggleBtn);
 
+// The address the user was heading to, handed over by the background worker.
+// Only trust http(s) URLs — never navigate to anything else from here.
+const originalUrl = (() => {
+  const raw = new URLSearchParams(location.search).get("url");
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === "http:" || u.protocol === "https:" ? raw : null;
+  } catch {
+    return null;
+  }
+})();
+
+const originalHost = originalUrl ? new URL(originalUrl).hostname.replace(/^www\./, "") : null;
+
 let timerState = null;
+let settings = { ...DEFAULT_SETTINGS };
 
 function render() {
   if (!timerState) return;
@@ -29,25 +49,60 @@ function render() {
     els.icon.textContent = "⛔";
     els.headline.textContent = "You can't go there!";
     els.message.textContent = "This site is off-limits while you're focusing.";
+    els.hint.textContent = "Head back to what you were working on — you've got this.";
+    els.hint.hidden = false;
     const remainingMs = Math.max(0, (timerState.phaseEndTime ?? Date.now()) - Date.now());
     els.timeValue.textContent = formatTime(remainingMs);
+
+    els.backBtn.hidden = true;
+    // "Continue anyway" is off the table in restrictive mode.
+    els.continueBtn.hidden = !originalUrl || settings.restrictiveMode;
   } else {
     els.icon.textContent = "✅";
     els.headline.textContent = "You're free!";
     els.message.textContent = "Your focus session has ended — this page no longer applies.";
+    els.hint.hidden = true;
     els.timeValue.textContent = "--:--";
+
+    els.continueBtn.hidden = true;
+    if (originalUrl) {
+      els.backBtn.textContent = originalHost ? `Back to ${originalHost}` : "Back to the site";
+      els.backBtn.hidden = false;
+    } else {
+      els.backBtn.hidden = true;
+    }
   }
+
+  els.actions.hidden = els.backBtn.hidden && els.continueBtn.hidden;
 }
 
+els.backBtn.addEventListener("click", () => {
+  if (originalUrl) window.location.replace(originalUrl);
+});
+
+els.continueBtn.addEventListener("click", async () => {
+  if (!originalUrl) return;
+  els.continueBtn.disabled = true;
+  const res = await chrome.runtime
+    .sendMessage({ type: "opentomato:continue-anyway", url: originalUrl })
+    .catch(() => null);
+  if (res && res.ok) {
+    window.location.replace(originalUrl);
+  } else {
+    els.continueBtn.disabled = false;
+    render();
+  }
+});
+
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "local" || !changes.timerState) return;
-  timerState = { ...timerState, ...changes.timerState.newValue };
+  if (area !== "local") return;
+  if (changes.timerState) timerState = { ...timerState, ...changes.timerState.newValue };
+  if (changes.settings) settings = { ...settings, ...changes.settings.newValue };
   render();
 });
 
 (async function init() {
-  await getSettings(); // ensures defaults exist; not otherwise needed here
-  timerState = await getTimerState();
+  [settings, timerState] = await Promise.all([getSettings(), getTimerState()]);
   render();
   setInterval(render, 1000);
 })();

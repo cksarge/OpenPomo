@@ -2,13 +2,35 @@
 // keys OpenTomato uses. Keeping reads/writes funneled through here means every
 // surface (background, popup, options, blocked page) agrees on shape/defaults.
 
-import { DEFAULT_SETTINGS, DEFAULT_TIMER_STATE, DEFAULT_THEME, STORAGE_KEYS } from "./constants.js";
+import {
+  DEFAULT_SETTINGS,
+  DEFAULT_TIMER_STATE,
+  DEFAULT_STATS,
+  DEFAULT_THEME,
+  STORAGE_KEYS,
+  BLOCK_MODE,
+} from "./constants.js";
 
 export async function getSettings() {
-  const { [STORAGE_KEYS.SETTINGS]: settings } = await chrome.storage.local.get(
-    STORAGE_KEYS.SETTINGS
-  );
-  return { ...DEFAULT_SETTINGS, ...(settings || {}) };
+  const { [STORAGE_KEYS.SETTINGS]: stored } = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
+  const settings = { ...DEFAULT_SETTINGS, ...(stored || {}) };
+
+  // One-time migration: older versions kept a single `blockList` shared by both
+  // modes. Move it onto the list for whichever mode was active so blacklist and
+  // whitelist entries stop bleeding into each other.
+  if (
+    Array.isArray(stored?.blockList) &&
+    !Array.isArray(stored?.blacklist) &&
+    !Array.isArray(stored?.whitelist)
+  ) {
+    const key = stored.blockMode === BLOCK_MODE.WHITELIST ? "whitelist" : "blacklist";
+    settings[key] = stored.blockList.slice();
+  }
+  delete settings.blockList;
+
+  settings.blacklist = Array.isArray(settings.blacklist) ? settings.blacklist.slice() : [];
+  settings.whitelist = Array.isArray(settings.whitelist) ? settings.whitelist.slice() : [];
+  return settings;
 }
 
 export async function setSettings(settings) {
@@ -24,6 +46,15 @@ export async function getTimerState() {
 
 export async function setTimerState(timerState) {
   await chrome.storage.local.set({ [STORAGE_KEYS.TIMER_STATE]: timerState });
+}
+
+export async function getStats() {
+  const { [STORAGE_KEYS.STATS]: stats } = await chrome.storage.local.get(STORAGE_KEYS.STATS);
+  return { ...DEFAULT_STATS, ...(stats || {}) };
+}
+
+export async function setStats(stats) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.STATS]: stats });
 }
 
 export async function getTheme() {

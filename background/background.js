@@ -16,23 +16,96 @@ import {
   ALARM_BADGE_TICK,
   PHASE_LABELS,
 } from "../common/constants.js";
-import { getSettings, setSettings, getTimerState, setTimerState } from "../common/storage.js";
-import { isUrlBlocked } from "../common/blocklist.js";
+import {
+  getSettings,
+  setSettings,
+  getTimerState,
+  setTimerState,
+  getStats,
+  setStats,
+} from "../common/storage.js";
+import { isUrlBlocked, activeBlockList, matchesList } from "../common/blocklist.js";
 import { getNextPhase } from "../common/phases.js";
 import { durationMsForPhase } from "../common/duration.js";
 
 const BLOCKED_URL = chrome.runtime.getURL("blocked/blocked.html");
 
+// The blocked page gets the address the user was heading to, so it can offer
+// "Continue anyway" and (once the session ends) a "Back to <site>" link.
+function blockedUrlFor(originalUrl) {
+  return `${BLOCKED_URL}?url=${encodeURIComponent(originalUrl || "")}`;
+}
+
+// "Continue anyway" allow-list: { [tabId]: [hostname, ...] }. Kept in
+// chrome.storage.session (in-memory, survives worker restarts, gone when the
+// browser closes). Cleared per-tab on close and wholesale on a new session.
+async function getBypass() {
+  const { bypass } = await chrome.storage.session.get("bypass");
+  return bypass && typeof bypass === "object" ? bypass : {};
+}
+
+async function addBypass(tabId, hostname) {
+  const bypass = await getBypass();
+  const hosts = new Set(bypass[tabId] || []);
+  hosts.add(hostname);
+  bypass[tabId] = [...hosts];
+  await chrome.storage.session.set({ bypass });
+}
+
+async function clearBypass(tabId) {
+  if (tabId == null) {
+    await chrome.storage.session.set({ bypass: {} });
+    return;
+  }
+  const bypass = await getBypass();
+  if (bypass[tabId]) {
+    delete bypass[tabId];
+    await chrome.storage.session.set({ bypass });
+  }
+}
+
+async function isBypassed(tabId, url) {
+  if (tabId == null) return false;
+  let hostname;
+  try {
+    hostname = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return false;
+  }
+  const bypass = await getBypass();
+  return matchesList(hostname, bypass[tabId] || []);
+}
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  clearBypass(tabId);
+});
+
 // Toolbar badge: shows minutes remaining in the current phase (like uBlock's
 // blocked-count badge, but counting down instead of up), color-coded to
 // match the popup's phase colors so it's readable at a glance without
-// opening anything.
+// opening anything. In the final minute it switches to a per-second countdown
+// ("45s"), driven by a 1s interval since chrome.alarms can't tick that fast.
 const BADGE_COLORS = {
   [PHASE.WORK]: "#e85c41",
   [PHASE.REST]: "#3fa66b",
   [PHASE.LONG_BREAK]: "#3f7fd1",
 };
 const BADGE_PAUSED_COLOR = "#8a7a6e";
+
+let badgeSecondTimer = null;
+
+function ensureBadgeSecondTimer() {
+  if (badgeSecondTimer === null) {
+    badgeSecondTimer = setInterval(refreshBadge, 1000);
+  }
+}
+
+function stopBadgeSecondTimer() {
+  if (badgeSecondTimer !== null) {
+    clearInterval(badgeSecondTimer);
+    badgeSecondTimer = null;
+  }
+}
 
 chrome.runtime.onInstalled.addListener(async () => {
   // Reading then writing back through getSettings/getTimerState fills in any
@@ -43,6 +116,15 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 async function refreshBadge() {
   const timerState = await getTimerState();
+  const settings = await getSettings();
+
+  // The minutes-remaining countdown badge is opt-out via the Notifications
+  // settings; when disabled, keep the toolbar icon clean.
+  if (!settings.badgeCountdown) {
+    stopBadgeSecondTimer();
+    await chrome.action.setBadgeText({ text: "" });
+    return;
+  }
 
   let remainingMs;
   if (timerState.status === STATUS.RUNNING && timerState.phaseEndTime) {
@@ -50,15 +132,26 @@ async function refreshBadge() {
   } else if (timerState.status === STATUS.PAUSED) {
     remainingMs = Math.max(0, timerState.remainingMsWhenPaused ?? 0);
   } else {
+    stopBadgeSecondTimer();
     await chrome.action.setBadgeText({ text: "" });
     return;
   }
 
-  const minutesRemaining = Math.ceil(remainingMs / 60000);
+  // Under a minute left: show a live seconds countdown instead of a flat "1".
+  const underOneMinute = remainingMs > 0 && remainingMs < 60000;
+  if (timerState.status === STATUS.RUNNING && underOneMinute) {
+    ensureBadgeSecondTimer();
+  } else {
+    stopBadgeSecondTimer();
+  }
+
+  const text = underOneMinute
+    ? `${Math.ceil(remainingMs / 1000)}s`
+    : String(Math.ceil(remainingMs / 60000));
   const color =
     timerState.status === STATUS.PAUSED ? BADGE_PAUSED_COLOR : BADGE_COLORS[timerState.phase] ?? BADGE_COLORS[PHASE.WORK];
 
-  await chrome.action.setBadgeText({ text: String(minutesRemaining) });
+  await chrome.action.setBadgeText({ text });
   await chrome.action.setBadgeBackgroundColor({ color });
   // Older Chrome versions don't have setBadgeTextColor; badge text defaults
   // to white anyway, but set it explicitly where available for reliability.
@@ -70,6 +163,44 @@ async function refreshBadge() {
 // Refresh on every service-worker wake-up (message, alarm, install, etc.) so
 // the badge is never stale even if a tick alarm was ever missed/delayed.
 refreshBadge();
+
+// Storage changes are a reliable wake-up even when the "save-settings" message
+// doesn't reach a sleeping worker, so mirror any settings edit onto the badge
+// right away (e.g. toggling "Show minutes remaining on the toolbar icon" off).
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.settings) refreshBadge();
+});
+
+const FOCUS_LOG_MAX_AGE_MS = 45 * 24 * 60 * 60 * 1000; // keep ~1.5 months of history
+const MIN_FOCUS_SEGMENT_MS = 30 * 1000; // ignore blink-and-you-miss-it stretches
+
+// Log how much of a focus (WORK) phase was actually spent before it ended —
+// whether it ran out naturally, was skipped, or was reset. Called with the
+// timer state as it was *before* the transition.
+async function recordFocusSegment(timerState, settings) {
+  if (timerState.phase !== PHASE.WORK) return;
+
+  const fullMs = durationMsForPhase(PHASE.WORK, settings);
+  let elapsedMs = 0;
+  if (timerState.status === STATUS.RUNNING && timerState.phaseEndTime) {
+    elapsedMs = fullMs - Math.max(0, timerState.phaseEndTime - Date.now());
+  } else if (timerState.status === STATUS.PAUSED) {
+    elapsedMs = fullMs - Math.max(0, timerState.remainingMsWhenPaused ?? fullMs);
+  }
+  elapsedMs = Math.max(0, Math.min(fullMs, elapsedMs));
+  if (elapsedMs < MIN_FOCUS_SEGMENT_MS) return;
+
+  const stats = await getStats();
+  const now = Date.now();
+  const cutoff = now - FOCUS_LOG_MAX_AGE_MS;
+  const focusLog = [
+    ...(Array.isArray(stats.focusLog) ? stats.focusLog : []).filter(
+      (entry) => entry && typeof entry.end === "number" && entry.end >= cutoff
+    ),
+    { end: now, ms: Math.round(elapsedMs) },
+  ];
+  await setStats({ ...stats, focusLog });
+}
 
 async function clearAlarms() {
   await chrome.alarms.clear(ALARM_PHASE_END);
@@ -83,8 +214,11 @@ async function scheduleAlarms(timerState, settings) {
 
   chrome.alarms.create(ALARM_PHASE_END, { when: timerState.phaseEndTime });
   // Chrome clamps alarm periods to a 1-minute minimum, which conveniently
-  // matches the badge's minute-level resolution.
-  chrome.alarms.create(ALARM_BADGE_TICK, { delayInMinutes: 1, periodInMinutes: 1 });
+  // matches the badge's minute-level resolution. Skip it entirely when the
+  // countdown badge is turned off so nothing keeps redrawing the icon.
+  if (settings.badgeCountdown) {
+    chrome.alarms.create(ALARM_BADGE_TICK, { delayInMinutes: 1, periodInMinutes: 1 });
+  }
 
   if (settings.warningEnabled && settings.warningSeconds > 0) {
     const warnAt = timerState.phaseEndTime - settings.warningSeconds * 1000;
@@ -123,10 +257,12 @@ function notify(title, message) {
 async function sweepTabsForBlocking(settings) {
   if (settings.blockMode === BLOCK_MODE.OFF) return;
   const tabs = await chrome.tabs.query({});
+  const list = activeBlockList(settings);
   for (const tab of tabs) {
     if (!tab.id || !tab.url) continue;
-    if (isUrlBlocked(tab.url, settings.blockMode, settings.blockList)) {
-      chrome.tabs.update(tab.id, { url: BLOCKED_URL });
+    if (await isBypassed(tab.id, tab.url)) continue;
+    if (isUrlBlocked(tab.url, settings.blockMode, list)) {
+      chrome.tabs.update(tab.id, { url: blockedUrlFor(tab.url) });
     }
   }
 }
@@ -142,6 +278,8 @@ async function applyState(timerState, settings, { sweep = false } = {}) {
 
 async function startTimer() {
   const settings = await getSettings();
+  // A brand-new session wipes any "continue anyway" allowances from before.
+  await clearBypass(null);
   const timerState = {
     status: STATUS.RUNNING,
     phase: PHASE.WORK,
@@ -187,6 +325,8 @@ async function resumeTimer() {
 
 async function resetTimer() {
   const settings = await getSettings();
+  await recordFocusSegment(await getTimerState(), settings);
+  await clearBypass(null);
   const next = { ...DEFAULT_TIMER_STATE };
   await applyState(next, settings);
   return next;
@@ -196,6 +336,7 @@ async function advancePhase({ announce }) {
   const settings = await getSettings();
   const timerState = await getTimerState();
   const finishedPhase = timerState.phase;
+  await recordFocusSegment(timerState, settings);
   const { phase: nextPhase, cycleCount } = getNextPhase(
     finishedPhase,
     timerState.cycleCount,
@@ -236,7 +377,23 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   }
 });
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+// Fields that restrictive mode freezes once a focus session is running.
+const RESTRICTED_SETTING_KEYS = [
+  "restrictiveMode",
+  "workMinutes",
+  "restMinutes",
+  "cyclesBeforeLongBreak",
+  "longBreakMinutes",
+  "blockMode",
+  "blacklist",
+  "whitelist",
+];
+
+function restrictionsActive(settings, timerState) {
+  return settings.restrictiveMode && timerState.status !== STATUS.IDLE;
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || typeof message.type !== "string" || !message.type.startsWith("opentomato:")) {
     return false; // not for us (e.g. offscreen-targeted messages) — let others handle it
   }
@@ -252,22 +409,90 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       case "opentomato:resume":
         sendResponse(await resumeTimer());
         break;
-      case "opentomato:reset":
+      case "opentomato:reset": {
+        const settings = await getSettings();
+        const timerState = await getTimerState();
+        if (restrictionsActive(settings, timerState)) {
+          // Restrictive mode: only from a paused timer, and only with the typed
+          // confirmation the popup collects.
+          if (timerState.status !== STATUS.PAUSED || message.confirmed !== true) {
+            sendResponse(timerState);
+            break;
+          }
+        }
         sendResponse(await resetTimer());
         break;
-      case "opentomato:skip":
+      }
+      case "opentomato:skip": {
+        const settings = await getSettings();
+        const timerState = await getTimerState();
+        if (restrictionsActive(settings, timerState)) {
+          sendResponse(timerState); // no skipping, no matter what
+          break;
+        }
         sendResponse(await skipPhase());
         break;
-      case "opentomato:get-state":
-        sendResponse({ timerState: await getTimerState(), settings: await getSettings() });
+      }
+      case "opentomato:continue-anyway": {
+        const settings = await getSettings();
+        const timerState = await getTimerState();
+        // Disabled entirely in restrictive mode; otherwise only meaningful while
+        // a focus block is actually in effect.
+        if (
+          settings.restrictiveMode ||
+          timerState.status !== STATUS.RUNNING ||
+          timerState.phase !== PHASE.WORK
+        ) {
+          sendResponse({ ok: false });
+          break;
+        }
+        const tabId = sender.tab?.id;
+        let hostname = null;
+        try {
+          hostname = new URL(message.url).hostname.toLowerCase().replace(/^www\./, "");
+        } catch {
+          hostname = null;
+        }
+        if (tabId == null || !hostname) {
+          sendResponse({ ok: false });
+          break;
+        }
+        await addBypass(tabId, hostname);
+        sendResponse({ ok: true });
         break;
-      case "opentomato:save-settings":
-        await setSettings(message.settings);
+      }
+      case "opentomato:get-state":
+        sendResponse({
+          timerState: await getTimerState(),
+          settings: await getSettings(),
+          stats: await getStats(),
+        });
+        break;
+      case "opentomato:reset-stats":
+        await setStats({ focusLog: [], resetAt: Date.now() });
+        sendResponse({ ok: true });
+        break;
+      case "opentomato:save-settings": {
+        const current = await getSettings();
+        const timerState = await getTimerState();
+        let incoming = message.settings || {};
+        if (restrictionsActive(current, timerState)) {
+          // Ignore edits to any frozen field (defends against a stale options
+          // page or a second tab writing while the session is locked).
+          incoming = { ...incoming };
+          for (const key of RESTRICTED_SETTING_KEYS) incoming[key] = current[key];
+        }
+        await setSettings(incoming);
         // Re-schedule alarms in case warning/duration settings changed mid-run.
-        await scheduleAlarms(await getTimerState(), message.settings);
+        await scheduleAlarms(await getTimerState(), incoming);
+        if (!incoming.badgeCountdown) {
+          stopBadgeSecondTimer();
+          await chrome.action.setBadgeText({ text: "" });
+        }
         await refreshBadge();
         sendResponse({ ok: true });
         break;
+      }
       default:
         sendResponse(null);
     }
@@ -285,7 +510,9 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   const timerState = await getTimerState();
   if (timerState.status !== STATUS.RUNNING || timerState.phase !== PHASE.WORK) return;
 
-  if (isUrlBlocked(details.url, settings.blockMode, settings.blockList)) {
-    chrome.tabs.update(details.tabId, { url: BLOCKED_URL });
+  if (await isBypassed(details.tabId, details.url)) return;
+
+  if (isUrlBlocked(details.url, settings.blockMode, activeBlockList(settings))) {
+    chrome.tabs.update(details.tabId, { url: blockedUrlFor(details.url) });
   }
 });

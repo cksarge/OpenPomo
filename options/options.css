@@ -45,6 +45,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -144,6 +148,7 @@ body {
 }
 
 .field input[type="number"],
+.field select,
 .list-add-row input[type="text"] {
   font: inherit;
   padding: 8px 10px;
@@ -154,6 +159,7 @@ body {
 }
 
 .field input[type="number"]:focus,
+.field select:focus,
 .list-add-row input[type="text"]:focus {
   outline: 2px solid var(--accent-soft);
   border-color: var(--accent);
@@ -192,6 +198,18 @@ body {
   border-radius: 5px;
 }
 
+.restrict-list {
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lock-note {
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .mode-row {
   display: flex;
   gap: 8px;
@@ -220,6 +238,91 @@ body {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent);
+}
+
+#folders-hint {
+  margin-top: 2px;
+}
+
+.site-folders {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.folder {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.folder-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.folder-header::-webkit-details-marker {
+  display: none;
+}
+
+.folder-header::before {
+  content: "▸";
+  color: var(--text-muted);
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+
+.folder[open] > .folder-header::before {
+  transform: rotate(90deg);
+}
+
+.folder-title {
+  flex: 1;
+}
+
+.folder-count {
+  font-weight: 500;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.folder[open] > .folder-header {
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-sites {
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px 12px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.folder-site {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.folder-header input[type="checkbox"],
+.folder-site input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+  flex-shrink: 0;
 }
 
 .list-editor {

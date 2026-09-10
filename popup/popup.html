@@ -44,6 +44,28 @@
           <button id="reset-btn" class="btn btn-ghost" disabled>Reset</button>
         </div>
       </div>
+
+      <p class="restrict-note" id="restrict-note" hidden>
+        🔒 Restrictive mode — no skipping; reset only while paused.
+      </p>
+      <p class="focus-stat" id="focus-stat" aria-live="polite"></p>
+
+      <div class="reset-confirm" id="reset-confirm" hidden>
+        <p>Restrictive mode is on. To reset the timer, type this exactly:</p>
+        <p class="reset-phrase" id="reset-phrase">Yes, I want to reset the timer.</p>
+        <input
+          type="text"
+          id="reset-confirm-input"
+          placeholder="Type the phrase"
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        />
+        <div class="reset-confirm-actions">
+          <button type="button" id="reset-confirm-cancel" class="btn btn-ghost">Cancel</button>
+          <button type="button" id="reset-confirm-go" class="btn btn-primary" disabled>Reset timer</button>
+        </div>
+      </div>
     </div>
     <script type="module" src="popup.js"></script>
   </body>
