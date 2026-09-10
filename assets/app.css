@@ -35,7 +35,8 @@
   line-height: 1.55;
 }
 
-.app-callout.is-synced {
+/* Shown when the OpenTomato extension is detected on the page. */
+.app-callout--ext {
   background: var(--color-rest-soft);
 }
 

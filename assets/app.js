@@ -2,13 +2,13 @@
 //
 // A standalone browser version of the extension's Pomodoro timer: same phase
 // state machine, same durations, same alert tones, same phase-end banner, and
-// the tab title shows the time remaining. It is only a demo — tasks, site
+// the tab title shows the time remaining. It is only a demo and ALWAYS runs on
+// its own — it never mirrors or controls the extension's timer. Tasks, site
 // blocking, Restrictive Mode, and focus stats all live in the extension.
 //
-// If the OpenTomato extension is installed and new enough to ship the page
-// bridge (v1.1.0+), this page links up with it: the timer state mirrors the
-// extension's, and Start/Pause/Reset/Skip here drive the extension too (and
-// vice-versa). Without the bridge it runs entirely on its own.
+// The one thing extension detection does here: if a v1.1.0+ extension is
+// present (its content script announces itself), the callout text changes to
+// point the user at the extension's settings. Nothing else.
 
 (function () {
   "use strict";
@@ -43,18 +43,6 @@
 
   var LS_STATE = "opentomato:web:timerState";
   var LS_SETTINGS = "opentomato:web:settings";
-
-  // Fields the extension bridge will accept from this page.
-  var SYNCED_SETTING_KEYS = [
-    "workMinutes",
-    "restMinutes",
-    "cyclesBeforeLongBreak",
-    "longBreakMinutes",
-    "warningEnabled",
-    "warningSeconds",
-    "soundOnEnd",
-    "soundOnWarning",
-  ];
 
   // ---- pure helpers (mirrors common/duration.js + common/phases.js) ---------
 
@@ -146,7 +134,6 @@
   }
 
   function notify(title, body) {
-    if (synced) return; // the extension shows its own banners while connected
     if (!settings.notificationsEnabled) return;
     if (!notificationsSupported() || Notification.permission !== "granted") return;
     try {
@@ -181,7 +168,7 @@
   var warnedForPhaseEndTime = null;
 
   function persistState() {
-    if (!synced) saveJSON(LS_STATE, state);
+    saveJSON(LS_STATE, state);
   }
   function persistSettings() {
     saveJSON(LS_SETTINGS, settings);
@@ -302,135 +289,44 @@
     }
   }
 
-  // ---- extension bridge (synced mode) ---------------------------------------
+  // ---- extension detection (callout text only) ----------------------------
+  //
+  // The demo never syncs with or controls the extension. If a v1.1.0+
+  // extension is installed, its content script announces itself on this page;
+  // all we do with that is swap the callout text.
 
-  var synced = false;
-  var extVersion = null;
-  var lastExtContact = 0;
-  var msgId = 0;
-  var pending = {};
+  var extInstalled = false;
   var helloTimer = null;
-  var pollTimer = null;
-
-  function postToExt(type, extra) {
-    var id = ++msgId;
-    var m = { source: "opentomato-web", type: type, id: id };
-    if (extra) {
-      for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) m[k] = extra[k];
-    }
-    window.postMessage(m, window.location.origin);
-    return id;
-  }
 
   window.addEventListener("message", function (event) {
     if (event.source !== window) return;
     var d = event.data;
-    if (!d || d.source !== "opentomato-ext" || typeof d.type !== "string") return;
-
-    if (d.type === "hello") {
-      onExtDetected(d.version);
-    } else if (d.type === "state") {
-      lastExtContact = now();
-      if (d.timerState) applyExtState(d.timerState);
-      if (d.settings) applyExtSettings(d.settings);
-    } else if (d.type === "response") {
-      lastExtContact = now();
-      var p = d.payload;
-      if (p && p.timerState) {
-        applyExtState(p.timerState);
-        if (p.settings) applyExtSettings(p.settings);
-      } else if (p && p.status) {
-        applyExtState(p);
-      }
-    }
-  });
-
-  function onExtDetected(version) {
-    if (synced && version === extVersion) return;
-    synced = true;
-    extVersion = version || null;
-    lastExtContact = now();
+    if (!d || d.source !== "opentomato-ext" || d.type !== "hello") return;
+    if (extInstalled) return;
+    extInstalled = true;
     if (helloTimer) {
       clearInterval(helloTimer);
       helloTimer = null;
     }
-    // Pull the extension's current state + settings.
-    postToExt("get-state");
-    if (!pollTimer) {
-      pollTimer = setInterval(function () {
-        postToExt("get-state");
-        // The bridge went quiet — fall back to running on our own.
-        if (now() - lastExtContact > 6000) dropSync();
-      }, 1000);
-    }
     renderCallout();
-    render();
-  }
-
-  function dropSync() {
-    synced = false;
-    extVersion = null;
-    if (pollTimer) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
-    // Resume standalone from whatever the extension last told us.
-    warnedForPhaseEndTime = state.phaseEndTime;
-    persistState();
-    startHelloProbe();
-    renderCallout();
-    render();
-  }
-
-  function applyExtState(ts) {
-    state = {
-      status: ts.status || STATUS.IDLE,
-      phase: ts.phase || PHASE.WORK,
-      cycleCount: ts.cycleCount || 0,
-      phaseEndTime: ts.phaseEndTime || null,
-      remainingMsWhenPaused: ts.remainingMsWhenPaused == null ? null : ts.remainingMsWhenPaused,
-    };
-    render();
-  }
-
-  function applyExtSettings(s) {
-    var changed = false;
-    for (var i = 0; i < SYNCED_SETTING_KEYS.length; i++) {
-      var k = SYNCED_SETTING_KEYS[i];
-      if (s[k] != null && s[k] !== settings[k]) {
-        settings[k] = s[k];
-        changed = true;
-      }
-    }
-    if (changed) {
-      persistSettings();
-      syncSettingsForm();
-    }
-  }
+  });
 
   function startHelloProbe() {
-    if (helloTimer) return;
     var tries = 0;
-    postToExt("hello");
+    window.postMessage({ source: "opentomato-web", type: "hello" }, window.location.origin);
     helloTimer = setInterval(function () {
-      if (synced || tries++ > 6) {
+      if (extInstalled || tries++ > 6) {
         clearInterval(helloTimer);
         helloTimer = null;
         return;
       }
-      postToExt("hello");
+      window.postMessage({ source: "opentomato-web", type: "hello" }, window.location.origin);
     }, 600);
   }
 
-  // ---- unified actions (route to extension when synced) --------------------
+  // ---- actions (always local) -------------------------------------------
 
   function doPrimary() {
-    if (synced) {
-      if (state.status === STATUS.RUNNING) postToExt("pause");
-      else if (state.status === STATUS.PAUSED) postToExt("resume");
-      else postToExt("start");
-      return;
-    }
     if (state.status === STATUS.RUNNING) localPause();
     else if (state.status === STATUS.PAUSED) localResume();
     else localStart();
@@ -438,14 +334,12 @@
 
   function doSkip() {
     if (state.status === STATUS.IDLE) return;
-    if (synced) postToExt("skip");
-    else localSkip();
+    localSkip();
   }
 
   function doReset() {
     if (state.status === STATUS.IDLE) return;
-    if (synced) postToExt("reset");
-    else localReset();
+    localReset();
   }
 
   // ---- DOM + rendering ----------------------------------------------------
@@ -514,14 +408,10 @@
 
   function renderCallout() {
     if (!els.callout) return;
-    if (synced) {
-      els.callout.className = "app-callout is-synced";
+    if (extInstalled) {
+      els.callout.className = "app-callout app-callout--ext";
       els.callout.innerHTML =
-        '<strong>Synced with the OpenTomato extension' +
-        (extVersion ? " v" + escapeHtml(extVersion) : "") +
-        ".</strong> " +
-        "Start, pause, skip, and reset from here or the extension — both stay in step. " +
-        "Tasks, site blocking, Restrictive Mode, and focus stats are in the extension’s settings.";
+        "<strong>In order to access all of the features, open the extension’s settings.</strong>";
     } else {
       els.callout.className = "app-callout";
       els.callout.innerHTML =
@@ -533,17 +423,10 @@
         "<li><strong>Restrictive Mode</strong> — lock the timer and your site list for the whole session</li>" +
         "<li><strong>Focus stats</strong> — how much you've actually focused, by hour / day / week / month</li>" +
         "<li><strong>Toolbar countdown</strong> — minutes remaining on the extension icon</li>" +
-        "<li><strong>Sync</strong> — drive your real timer from this page</li>" +
         "</ul>" +
         '<a class="btn btn-primary app-callout-link" data-store-link href="https://github.com/cksarge/OpenTomato">Get the extension</a>';
       applyStoreLink();
     }
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
   }
 
   // config.js only rewrites [data-store-link] elements present at DOMContentLoaded;
@@ -590,8 +473,7 @@
     if (els.f.notificationsEnabled) {
       els.f.notificationsEnabled.checked = !!settings.notificationsEnabled && notifyGranted();
     }
-    els.notifyRow.hidden = synced || !notificationsSupported();
-    els.notifySyncedNote.hidden = !synced;
+    els.notifyRow.hidden = !notificationsSupported();
   }
 
   function notifyGranted() {
@@ -600,13 +482,6 @@
 
   function pushSettings() {
     persistSettings();
-    if (synced) {
-      var payload = {};
-      for (var i = 0; i < SYNCED_SETTING_KEYS.length; i++) {
-        payload[SYNCED_SETTING_KEYS[i]] = settings[SYNCED_SETTING_KEYS[i]];
-      }
-      postToExt("set-settings", { settings: payload });
-    }
     render();
     flashSaved();
   }
@@ -685,7 +560,6 @@
     els.saved = document.getElementById("saved-indicator");
     els.notifyRow = document.getElementById("notify-row");
     els.notifyHint = document.getElementById("notify-hint");
-    els.notifySyncedNote = document.getElementById("notify-synced-note");
     els.f = {
       workMinutes: document.getElementById("workMinutes"),
       restMinutes: document.getElementById("restMinutes"),
@@ -715,11 +589,11 @@
     render();
 
     setInterval(function () {
-      if (!synced) tickStandalone();
+      tickStandalone();
       render();
     }, 250);
 
-    // Look for the extension bridge.
+    // Detect the extension (for the callout text only).
     startHelloProbe();
   }
 

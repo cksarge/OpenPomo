@@ -77,14 +77,14 @@ that comparison happens entirely on your device.
 
 ## The OpenTomato website demo
 
-OpenTomato ships a small content script that runs on **one page only** — the OpenTomato website's
-demo at `https://cksarge.github.io/OpenTomato/`. Its sole job is to relay timer actions (start,
-pause, skip, reset) and timer/notification settings between that page and the extension, so the
-demo can mirror and control your real timer while it's open.
+OpenTomato ships a tiny content script that runs on **one page only** — the OpenTomato website's
+demo at `https://cksarge.github.io/OpenTomato/`. Its sole job is to tell that page the extension
+is installed, and its version number, so the page can point you at the extension's own settings.
 
-It reads and writes only your timer state and timer-related settings. It never touches your site
-lists, Restrictive Mode, tasks, or focus history; it runs on no other website; and it sends
-nothing off your device. If you never open the demo page, it does nothing. The demo page itself is
+It reads and writes no data at all. It does not touch the timer, your settings, your site lists,
+Restrictive Mode, tasks, or focus history. The demo page runs its own separate practice timer and
+never controls or reads the real one. The content script runs on no other website and sends
+nothing off your device; if you never open the demo page, it does nothing. The demo page itself is
 served as a static file from GitHub Pages and sets no cookies and runs no analytics.
 
 ## Third parties
