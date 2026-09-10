@@ -43,17 +43,30 @@
   color: var(--text);
 }
 
-.app-callout-link {
-  display: inline-block;
-  margin-top: 4px;
-  font-weight: 700;
-  white-space: nowrap;
-  color: var(--color-work-dark);
-  text-decoration: none;
+.app-callout-title {
+  margin: 0 0 8px;
 }
 
-.app-callout-link:hover {
-  text-decoration: underline;
+.app-callout-list {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-callout-list li {
+  color: var(--text-muted);
+}
+
+.app-callout-list strong {
+  color: var(--text);
+}
+
+/* The "get the extension" call to action inside the callout. Rendered as a
+   .btn by renderCallout(); this just adds spacing. */
+a.app-callout-link {
+  margin-top: 2px;
 }
 
 /* Layout: timer beside settings on wide screens, stacked on narrow */

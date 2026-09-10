@@ -1,12 +1,12 @@
-// OpenTomato Web Timer.
+// OpenTomato browser demo.
 //
 // A standalone browser version of the extension's Pomodoro timer: same phase
 // state machine, same durations, same alert tones, same phase-end banner, and
-// the tab title shows the time remaining. It does NOT do site blocking or
-// Restrictive Mode — those stay in the extension.
+// the tab title shows the time remaining. It is only a demo — tasks, site
+// blocking, Restrictive Mode, and focus stats all live in the extension.
 //
 // If the OpenTomato extension is installed and new enough to ship the page
-// bridge (v1.0.1+), this page links up with it: the timer state mirrors the
+// bridge (v1.1.0+), this page links up with it: the timer state mirrors the
 // extension's, and Start/Pause/Reset/Skip here drive the extension too (and
 // vice-versa). Without the bridge it runs entirely on its own.
 
@@ -508,7 +508,7 @@
       var pausedTag = state.status === STATUS.PAUSED ? " (paused)" : "";
       document.title = formatTime(remainingMs) + pausedTag + " · " + PHASE_LABELS[state.phase] + " · OpenTomato";
     } else {
-      document.title = "Web Timer · OpenTomato";
+      document.title = "Demo · OpenTomato";
     }
   }
 
@@ -521,15 +521,21 @@
         (extVersion ? " v" + escapeHtml(extVersion) : "") +
         ".</strong> " +
         "Start, pause, skip, and reset from here or the extension — both stay in step. " +
-        "Site blocking and Restrictive Mode live in the extension’s own settings.";
+        "Tasks, site blocking, Restrictive Mode, and focus stats are in the extension’s settings.";
     } else {
       els.callout.className = "app-callout";
       els.callout.innerHTML =
-        "<strong>This is the web version.</strong> The timer works right here, but " +
-        "<strong>site blocking</strong>, <strong>Restrictive Mode</strong>, a " +
-        "<strong>toolbar countdown</strong>, and <strong>auto-sync between this page and the timer</strong> " +
-        "(coming in v1.0.1) need the OpenTomato Chrome extension. " +
-        '<a class="app-callout-link" data-store-link href="https://github.com/cksarge/OpenTomato">Get the extension →</a>';
+        '<p class="app-callout-title"><strong>This is just the demo.</strong> ' +
+        "The full version is the free OpenTomato Chrome extension:</p>" +
+        '<ul class="app-callout-list">' +
+        "<li><strong>Tasks</strong> — a checklist that rides along in the toolbar popup</li>" +
+        "<li><strong>Site blocking</strong> — blacklist or whitelist sites during focus sessions</li>" +
+        "<li><strong>Restrictive Mode</strong> — lock the timer and your site list for the whole session</li>" +
+        "<li><strong>Focus stats</strong> — how much you've actually focused, by hour / day / week / month</li>" +
+        "<li><strong>Toolbar countdown</strong> — minutes remaining on the extension icon</li>" +
+        "<li><strong>Sync</strong> — drive your real timer from this page</li>" +
+        "</ul>" +
+        '<a class="btn btn-primary app-callout-link" data-store-link href="https://github.com/cksarge/OpenTomato">Get the extension</a>';
       applyStoreLink();
     }
   }
