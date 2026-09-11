@@ -18,13 +18,23 @@
         <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme"></button>
       </header>
 
-      <details class="card timer-card-section" open>
-        <summary class="card-summary"><h2>Timer</h2></summary>
+      <details class="card timer-card-section">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Timer</h2>
+        </summary>
         <div id="timer-panel"></div>
       </details>
 
-      <details class="card" open>
-        <summary class="card-summary"><h2>Restrictive Mode</h2></summary>
+      <details class="card">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Restrictive Mode</h2>
+        </summary>
         <label class="toggle-row">
           <input type="checkbox" id="restrictiveMode" />
           <span>Enable restrictive mode</span>
@@ -47,8 +57,13 @@
         </p>
       </details>
 
-      <details class="card" open>
-        <summary class="card-summary"><h2>Timer Durations</h2></summary>
+      <details class="card">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Timer Durations</h2>
+        </summary>
         <div class="field-grid">
           <label class="field">
             <span>Focus session (minutes)</span>
@@ -72,8 +87,13 @@
         </p>
       </details>
 
-      <details class="card" open>
-        <summary class="card-summary"><h2>Notifications</h2></summary>
+      <details class="card">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Notifications</h2>
+        </summary>
         <label class="toggle-row">
           <input type="checkbox" id="soundOnEnd" />
           <span>Play a sound when a session ends</span>
@@ -101,8 +121,13 @@
         </div>
       </details>
 
-      <details class="card" open>
-        <summary class="card-summary"><h2>Tasks</h2></summary>
+      <details class="card">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Tasks</h2>
+        </summary>
         <p class="hint">
           A checklist that shows in the popup. Check items off from the popup or here; add,
           rename, and remove them here.
@@ -122,8 +147,13 @@
         </div>
       </details>
 
-      <details class="card" open>
-        <summary class="card-summary"><h2>Focus Stats</h2></summary>
+      <details class="card">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Focus Stats</h2>
+        </summary>
         <p class="hint">
           Counts the time you actually spend in focus sessions. Pick the window the popup's
           running total adds up over, or reset it whenever you want a fresh start.
@@ -146,8 +176,13 @@
         </div>
       </details>
 
-      <details class="card" open>
-        <summary class="card-summary"><h2>Site Blocking</h2></summary>
+      <details class="card">
+        <summary class="card-summary">
+          <svg class="card-chevron" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+          </svg>
+          <h2>Site Blocking</h2>
+        </summary>
         <p class="hint" id="blocking-hint">
           Blocking only applies during focus sessions — never during breaks. The blacklist and
           whitelist keep separate lists. Enter one domain per site (e.g. <code>youtube.com</code>);

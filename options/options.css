@@ -129,31 +129,43 @@ body {
   font-size: 15px;
 }
 
-/* Every card is a <details> so it can be collapsed; all its settings are
-   still there underneath — collapsing only hides them from view. */
+/* Every card is a <details> so it can be collapsed (collapsed by default);
+   all its settings are still there underneath — collapsing only hides them
+   from view. The padding/negative-margin pair grows the clickable row
+   without shifting where the title sits. */
 .card-summary {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   list-style: none; /* Firefox's default marker */
   -webkit-user-select: none;
   user-select: none;
+  margin: -4px -6px;
+  padding: 4px 6px;
+  border-radius: 10px;
+  transition: background 0.15s ease;
+}
+
+.card-summary:hover {
+  background: var(--bg);
 }
 
 .card-summary::-webkit-details-marker {
   display: none;
 }
 
-.card-summary::before {
-  content: "▸";
+.card-chevron {
   flex: 0 0 auto;
   color: var(--text-muted);
-  font-size: 11px;
-  transition: transform 0.15s ease;
+  transition: transform 0.18s ease, color 0.15s ease;
 }
 
-.card[open] > .card-summary::before {
+.card-summary:hover .card-chevron {
+  color: var(--accent);
+}
+
+.card[open] > .card-summary .card-chevron {
   transform: rotate(90deg);
 }
 
