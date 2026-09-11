@@ -193,12 +193,11 @@ function renderTasks() {
   }
 }
 
-// A task checked off here sinks to the bottom of the list a couple seconds
-// later, so the list settles once you're actually looking away from it
-// instead of jumping the moment you click. Unchecking before that fires
-// cancels the move. Only lives as long as the popup is open — closing it
-// (or the popup being pre-rendered and dismissed) drops any pending move.
-const TASK_DONE_MOVE_DELAY_MS = 2500;
+// A task checked off here sinks to the bottom of the list shortly after, so
+// it doesn't jump out from under the click but still settles quickly.
+// Unchecking before that fires cancels the move. Only lives as long as the
+// popup is open — closing it drops any pending move.
+const TASK_DONE_MOVE_DELAY_MS = 500;
 const pendingTaskMoves = new Map(); // task id -> setTimeout handle
 
 async function toggleTask(id, done) {
