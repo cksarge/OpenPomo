@@ -174,8 +174,10 @@ body {
   font-size: 15px;
 }
 
-/* Collapsed cards don't need the full 14px gap reserved below the summary. */
-.card:not([open]) {
+/* Collapsed cards don't need the full 14px gap reserved below the summary.
+   Scoped to <details> only — the always-open Timer card is a plain <section>
+   with no "open" attribute at all, and must keep its normal gap. */
+details.card:not([open]) {
   gap: 0;
 }
 
