@@ -696,3 +696,9 @@ body {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+.task-foot-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}

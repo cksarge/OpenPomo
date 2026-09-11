@@ -57,6 +57,7 @@ const els = {
   taskFoot: document.getElementById("task-foot"),
   taskCountLine: document.getElementById("task-count-line"),
   clearDoneBtn: document.getElementById("clear-done-btn"),
+  clearAllBtn: document.getElementById("clear-all-btn"),
   timerPanel: document.getElementById("timer-panel"),
 };
 
@@ -470,6 +471,14 @@ function clearCompleted() {
   persistTasks();
 }
 
+function clearAllTasks() {
+  if (!tasks.length) return;
+  if (!confirm("Remove all tasks? This can't be undone.")) return;
+  tasks = [];
+  renderTasks();
+  persistTasks();
+}
+
 async function persistTasks() {
   await setTasks(tasks);
   showSaved();
@@ -483,6 +492,7 @@ els.taskInput.addEventListener("keydown", (event) => {
   }
 });
 els.clearDoneBtn.addEventListener("click", clearCompleted);
+els.clearAllBtn.addEventListener("click", clearAllTasks);
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local") return;
