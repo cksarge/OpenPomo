@@ -321,7 +321,7 @@ a.app-callout-link {
 .settings-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 18px;
 }
 
@@ -334,9 +334,4 @@ a.app-callout-link {
 
 .saved-indicator.visible {
   opacity: 1;
-}
-
-.settings-foot .ext-note {
-  font-size: 12.5px;
-  color: var(--text-muted);
 }
