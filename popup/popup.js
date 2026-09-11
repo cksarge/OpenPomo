@@ -226,6 +226,7 @@ async function moveTaskToBottom(id) {
   if (index === -1) return;
   const task = state.tasks[index];
   if (!task.done) return; // unchecked again before the timer fired
+  if (index === state.tasks.length - 1) return; // already last — nothing to move past
 
   const reordered = state.tasks.slice();
   reordered.splice(index, 1);
