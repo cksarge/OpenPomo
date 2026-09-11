@@ -193,8 +193,45 @@ function renderTasks() {
   }
 }
 
+// A task checked off here sinks to the bottom of the list a couple seconds
+// later, so the list settles once you're actually looking away from it
+// instead of jumping the moment you click. Unchecking before that fires
+// cancels the move. Only lives as long as the popup is open — closing it
+// (or the popup being pre-rendered and dismissed) drops any pending move.
+const TASK_DONE_MOVE_DELAY_MS = 2500;
+const pendingTaskMoves = new Map(); // task id -> setTimeout handle
+
 async function toggleTask(id, done) {
   state.tasks = state.tasks.map((t) => (t.id === id ? { ...t, done } : t));
+  render();
+  await setTasks(state.tasks);
+
+  const existingTimeout = pendingTaskMoves.get(id);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+    pendingTaskMoves.delete(id);
+  }
+  if (done) {
+    pendingTaskMoves.set(
+      id,
+      setTimeout(() => {
+        pendingTaskMoves.delete(id);
+        moveTaskToBottom(id);
+      }, TASK_DONE_MOVE_DELAY_MS)
+    );
+  }
+}
+
+async function moveTaskToBottom(id) {
+  const index = state.tasks.findIndex((t) => t.id === id);
+  if (index === -1) return;
+  const task = state.tasks[index];
+  if (!task.done) return; // unchecked again before the timer fired
+
+  const reordered = state.tasks.slice();
+  reordered.splice(index, 1);
+  reordered.push(task);
+  state.tasks = reordered;
   render();
   await setTasks(state.tasks);
 }
