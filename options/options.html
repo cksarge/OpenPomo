@@ -18,13 +18,13 @@
         <button id="theme-toggle-btn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme"></button>
       </header>
 
-      <section class="card timer-card-section">
-        <h2>Timer</h2>
+      <details class="card timer-card-section" open>
+        <summary class="card-summary"><h2>Timer</h2></summary>
         <div id="timer-panel"></div>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Restrictive Mode</h2>
+      <details class="card" open>
+        <summary class="card-summary"><h2>Restrictive Mode</h2></summary>
         <label class="toggle-row">
           <input type="checkbox" id="restrictiveMode" />
           <span>Enable restrictive mode</span>
@@ -45,10 +45,10 @@
         <p class="hint lock-note" id="restrictive-active-note" hidden>
           🔒 A focus session is running — restrictive mode can't be changed until it ends.
         </p>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Timer Durations</h2>
+      <details class="card" open>
+        <summary class="card-summary"><h2>Timer Durations</h2></summary>
         <div class="field-grid">
           <label class="field">
             <span>Focus session (minutes)</span>
@@ -70,10 +70,10 @@
         <p class="hint lock-note" id="timer-lock-note" hidden>
           🔒 Locked while a focus session is running (restrictive mode).
         </p>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Notifications</h2>
+      <details class="card" open>
+        <summary class="card-summary"><h2>Notifications</h2></summary>
         <label class="toggle-row">
           <input type="checkbox" id="soundOnEnd" />
           <span>Play a sound when a session ends</span>
@@ -99,10 +99,10 @@
             <input type="number" id="warningSeconds" min="5" max="120" step="5" />
           </label>
         </div>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Tasks</h2>
+      <details class="card" open>
+        <summary class="card-summary"><h2>Tasks</h2></summary>
         <p class="hint">
           A checklist that shows in the popup. Check items off from the popup or here; add,
           rename, and remove them here.
@@ -120,10 +120,10 @@
             <button type="button" id="clear-all-btn" class="btn btn-ghost">Clear all</button>
           </div>
         </div>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Focus Stats</h2>
+      <details class="card" open>
+        <summary class="card-summary"><h2>Focus Stats</h2></summary>
         <p class="hint">
           Counts the time you actually spend in focus sessions. Pick the window the popup's
           running total adds up over, or reset it whenever you want a fresh start.
@@ -144,10 +144,10 @@
         <div>
           <button type="button" id="reset-stats-btn" class="btn btn-ghost">Reset focus total</button>
         </div>
-      </section>
+      </details>
 
-      <section class="card">
-        <h2>Site Blocking</h2>
+      <details class="card" open>
+        <summary class="card-summary"><h2>Site Blocking</h2></summary>
         <p class="hint" id="blocking-hint">
           Blocking only applies during focus sessions — never during breaks. The blacklist and
           whitelist keep separate lists. Enter one domain per site (e.g. <code>youtube.com</code>);
@@ -184,7 +184,7 @@
         <p class="hint lock-note" id="blocking-lock-note" hidden>
           🔒 Locked while a focus session is running (restrictive mode).
         </p>
-      </section>
+      </details>
 
       <div class="footer-row">
         <div class="footer-actions">
