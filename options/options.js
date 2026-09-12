@@ -59,10 +59,14 @@ const els = {
   clearDoneBtn: document.getElementById("clear-done-btn"),
   clearAllBtn: document.getElementById("clear-all-btn"),
   timerPanel: document.getElementById("timer-panel"),
+  versionLine: document.getElementById("version-line"),
 };
 
 initTheme(els.themeToggleBtn);
 initTimerPanel(els.timerPanel);
+
+// Read straight from the manifest so this never drifts from the real version.
+els.versionLine.textContent = `Version: ${chrome.runtime.getManifest().version}`;
 
 let settings = { ...DEFAULT_SETTINGS };
 let stats = { ...DEFAULT_STATS };
