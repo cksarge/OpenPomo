@@ -30,7 +30,8 @@
           </svg>
           <h2>Restrictive Mode</h2>
         </summary>
-        <label class="toggle-row">
+        <div class="card-body">
+<label class="toggle-row">
           <input type="checkbox" id="restrictiveMode" />
           <span>Enable restrictive mode</span>
         </label>
@@ -50,6 +51,7 @@
         <p class="hint lock-note" id="restrictive-active-note" hidden>
           🔒 A focus session is running — restrictive mode can't be changed until it ends.
         </p>
+        </div>
       </details>
 
       <details class="card">
@@ -59,7 +61,8 @@
           </svg>
           <h2>Timer Durations</h2>
         </summary>
-        <div class="field-grid">
+        <div class="card-body">
+<div class="field-grid">
           <label class="field">
             <span>Focus session (minutes)</span>
             <input type="number" id="workMinutes" min="1" max="180" step="1" />
@@ -80,6 +83,7 @@
         <p class="hint lock-note" id="timer-lock-note" hidden>
           🔒 Locked while a focus session is running (restrictive mode).
         </p>
+        </div>
       </details>
 
       <details class="card">
@@ -89,7 +93,8 @@
           </svg>
           <h2>Notifications</h2>
         </summary>
-        <label class="toggle-row">
+        <div class="card-body">
+<label class="toggle-row">
           <input type="checkbox" id="soundOnEnd" />
           <span>Play a sound when a session ends</span>
         </label>
@@ -114,6 +119,7 @@
             <input type="number" id="warningSeconds" min="5" max="120" step="5" />
           </label>
         </div>
+        </div>
       </details>
 
       <details class="card">
@@ -123,7 +129,8 @@
           </svg>
           <h2>Tasks</h2>
         </summary>
-        <p class="hint">
+        <div class="card-body">
+<p class="hint">
           A checklist that shows in the popup. Check items off from the popup or here; add,
           rename, and remove them here.
         </p>
@@ -140,6 +147,7 @@
             <button type="button" id="clear-all-btn" class="btn btn-ghost">Clear all</button>
           </div>
         </div>
+        </div>
       </details>
 
       <details class="card">
@@ -149,7 +157,8 @@
           </svg>
           <h2>Focus Stats</h2>
         </summary>
-        <p class="hint">
+        <div class="card-body">
+<p class="hint">
           Counts the time you actually spend in focus sessions. Pick the window the popup's
           running total adds up over, or reset it whenever you want a fresh start.
         </p>
@@ -169,6 +178,7 @@
         <div>
           <button type="button" id="reset-stats-btn" class="btn btn-ghost">Reset focus total</button>
         </div>
+        </div>
       </details>
 
       <details class="card">
@@ -178,7 +188,8 @@
           </svg>
           <h2>Site Blocking</h2>
         </summary>
-        <p class="hint" id="blocking-hint">
+        <div class="card-body">
+<p class="hint" id="blocking-hint">
           Blocking only applies during focus sessions — never during breaks. The blacklist and
           whitelist keep separate lists. Enter one domain per site (e.g. <code>youtube.com</code>);
           subdomains are matched automatically.
@@ -214,6 +225,7 @@
         <p class="hint lock-note" id="blocking-lock-note" hidden>
           🔒 Locked while a focus session is running (restrictive mode).
         </p>
+        </div>
       </details>
 
       <div class="footer-row">

@@ -174,6 +174,18 @@ body {
   font-size: 15px;
 }
 
+/* Chrome wraps a <details>'s non-summary children in an internal
+   ::details-content box (display: block by default), which pulls them out
+   of .card's flex layout entirely — every field would render with zero gap
+   between them instead of the 14px .card normally gives its children. Giving
+   that content an explicit wrapper and putting the flex/gap on the wrapper
+   itself sidesteps that regardless of ::details-content support. */
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 /* Collapsed cards don't need the full 14px gap reserved below the summary.
    Scoped to <details> only — the always-open Timer card is a plain <section>
    with no "open" attribute at all, and must keep its normal gap. */
