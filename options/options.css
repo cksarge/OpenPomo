@@ -121,7 +121,7 @@ body {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .card h2 {
@@ -189,6 +189,7 @@ details.card:not([open]) {
 
 .field-grid.indent {
   padding-left: 4px;
+  margin-top: 4px; /* a bit more separation from the checkbox it's nested under */
 }
 
 .field {
