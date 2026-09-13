@@ -4,7 +4,7 @@ The Chrome extension itself — a Manifest V3 Pomodoro timer with customizable d
 alerts, and blacklist/whitelist site blocking that's only active during focus sessions.
 
 No ads, no accounts, no analytics. Everything is stored locally via `chrome.storage.local` and
-never leaves your device — see the [privacy policy](https://github.com/cksarge/OpenTomato/blob/website/privacy-policy.md)
+never leaves your device — see the [privacy policy](https://cksarge.github.io/OpenTomato/privacy.html)
 for details.
 
 ## Loading it in Chrome
@@ -27,7 +27,7 @@ popup/                 Toolbar popup UI (the timer itself)
 options/               Settings page (durations, sounds, site lists)
 blocked/               Page shown when navigating to a blocked site during a focus session
 offscreen/              Offscreen document used to play alert sounds (service workers have no audio)
-bridge/                 Content script that links the OpenTomato Web Timer page to this timer
+bridge/                 Content script that announces the extension's presence to the demo page
 common/                 Shared constants, storage helpers, and blocking/phase logic
 icons/                  Extension icon source (icon.svg) and generated PNGs
 ```
