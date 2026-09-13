@@ -1,10 +1,15 @@
 <!--
-  PRERELEASE DRAFT — holding copy for the OpenTomato 1.1.0 privacy policy.
+  PRERELEASE DRAFT — the OpenTomato 1.1.0 privacy policy.
 
-  The live policy (privacy-policy.md, rendered at privacy.html) still describes
-  version 1.0.0. When 1.1.0 is published to the Chrome Web Store, replace the
-  contents of privacy-policy.md with this file's contents (dropping this comment
-  and updating the effective date), then delete this file.
+  privacy.html serves versioned policy files: privacy-policy-X-Y-Z.md (dots
+  become dashes). With no #version in the URL it serves whichever version
+  OPENTOMATO_PRIVACY_VERSION in assets/config.js names as live (currently
+  1.0.0, so this file is reachable now only at privacy.html#1.1.0 — handy for
+  pointing the Chrome Web Store's privacy policy field at it while 1.1.0 is
+  pending review). When 1.1.0 actually ships, just update
+  OPENTOMATO_PRIVACY_VERSION to "1.1.0" — this file becomes the default at
+  privacy.html with no further changes, and older versions stay reachable
+  forever at their own #version URL.
 
   Differences from 1.0.0: adds the Tasks checklist to what's stored, and
   discloses the content script that links the website demo page to the timer.

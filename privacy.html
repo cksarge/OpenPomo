@@ -53,21 +53,55 @@
     </footer>
 
     <script>
+      // Serves a specific version's policy when the URL names one
+      // (privacy.html#1.1.0 -> privacy-policy-1-1-0.md), regardless of which
+      // version is currently live. With no #version, falls back to
+      // OPENTOMATO_PRIVACY_VERSION from assets/config.js — the version that's
+      // actually live right now. Every version stays reachable at its own
+      // #-URL forever, even after a newer one becomes the default.
       const contentEl = document.getElementById("policy-content");
-      fetch("privacy-policy.md")
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to load privacy-policy.md");
-          return res.text();
-        })
-        .then((markdown) => {
-          contentEl.innerHTML = marked.parse(markdown);
-        })
-        .catch(() => {
+
+      function versionToFile(version) {
+        return "privacy-policy-" + version.replace(/\./g, "-") + ".md";
+      }
+
+      const isValidVersion = (v) => /^[0-9]+(\.[0-9]+){1,3}$/.test(v);
+
+      function loadPolicy() {
+        const requested = decodeURIComponent(location.hash.slice(1)).trim();
+        const version = isValidVersion(requested) ? requested : window.OPENTOMATO_PRIVACY_VERSION;
+        const file = version ? versionToFile(version) : null;
+
+        if (!file) {
           contentEl.innerHTML =
-            '<p class="policy-error">Couldn\'t load the privacy policy. If you\'re viewing this file directly ' +
-            "from disk, serve the <code>website/</code> folder over http(s) instead (e.g. " +
-            "<code>python3 -m http.server</code>) — browsers block local file fetches.</p>";
-        });
+            '<p class="policy-error">No privacy policy version is configured. Set ' +
+            "<code>OPENTOMATO_PRIVACY_VERSION</code> in <code>assets/config.js</code>.</p>";
+          return;
+        }
+
+        contentEl.innerHTML = '<p class="policy-loading">Loading privacy policy…</p>';
+        fetch(file)
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to load " + file);
+            return res.text();
+          })
+          .then((markdown) => {
+            contentEl.innerHTML = marked.parse(markdown);
+          })
+          .catch(() => {
+            contentEl.innerHTML =
+              '<p class="policy-error">Couldn\'t load the privacy policy (' +
+              file +
+              "). If you're viewing this file directly from disk, serve the <code>website/</code> folder " +
+              "over http(s) instead (e.g. <code>python3 -m http.server</code>) — browsers block local file " +
+              "fetches. If you followed a #version link, that version may not exist.</p>";
+          });
+      }
+
+      loadPolicy();
+      // Re-render if just the #version changes without a full page load
+      // (e.g. editing the hash while already on the page).
+      window.addEventListener("hashchange", loadPolicy);
     </script>
   </body>
 </html>
