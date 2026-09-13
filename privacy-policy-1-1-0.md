@@ -107,4 +107,4 @@ effective date above.
 
 Questions about this policy or the project can be emailed to
 [carterkcoding@gmail.com](mailto:carterkcoding@gmail.com), or opened as an issue on GitHub:
-[github.com/cksarge/OpenTomato](https://github.com/cksarge/OpenTomato).
+[github.com/cksarge/OpenTomato/issues](https://github.com/cksarge/OpenTomato/issues).
